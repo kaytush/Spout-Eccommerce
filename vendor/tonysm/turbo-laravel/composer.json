@@ -1,0 +1,57 @@
+{
+    "name": "tonysm/turbo-laravel",
+    "description": "Turbo Laravel gives you a set of conventions to make the most out of the Hotwire stack (inspired by turbo-rails gem).",
+    "keywords": [
+        "tonysm",
+        "turbo-laravel"
+    ],
+    "homepage": "https://github.com/tonysm/turbo-laravel",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tony Messias",
+            "email": "tonysm@hey.com",
+            "homepage": "https://tonysm.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0|^8.1",
+        "illuminate/support": "^8.47|^9.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^6.24|^7.0",
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tonysm\\TurboLaravel\\": "src"
+        },
+        "files": ["src/helpers.php"]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tonysm\\TurboLaravel\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "psalm": "vendor/bin/psalm",
+        "test": "vendor/bin/phpunit --colors=always",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+              "\\Tonysm\\TurboLaravel\\TurboServiceProvider"
+            ],
+            "aliases": {
+                "Turbo": "\\Tonysm\\TurboLaravel\\Facades\\Turbo"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

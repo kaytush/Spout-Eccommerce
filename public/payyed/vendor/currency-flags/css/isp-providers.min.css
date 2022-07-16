@@ -1,0 +1,62 @@
+.isp-provider {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    background-size: cover;
+    background-image: url(data:image/png;base64,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)
+}
+
+.isp-provider-sm {
+    width: 16px;
+    height: 10px
+}
+
+.isp-provider-lg {
+    width: 36px;
+    height: 24px
+}
+
+.isp-provider-xl {
+    width: 48px;
+    height: 32px
+}
+
+.isp-provider.isp-provider-airtel {
+    background-image: url('/assets/images/bills/Airtel-Airtime.jpg')
+}
+
+.isp-provider.isp-provider-mtn {
+    background-image: url('/assets/images/bills/MTN-Airtime.jpg')
+}
+
+.isp-provider.isp-provider-glo {
+    background-image: url('/assets/images/bills/GLO-Airtime.jpg')
+}
+
+.isp-provider.isp-provider-9mobile {
+    background-image: url('/assets/images/bills/9mobile-Airtime.jpg')
+}
+
+.isp-provider.isp-provider-smile4g {
+    background-image: url('/assets/images/bills/Smile-Payment.jpg')
+}
+
+.isp-provider.isp-provider-spectranet {
+    background-image: url('/assets/images/bills/Spectranet.jpg')
+}
+
+.isp-provider.isp-provider-dstv {
+    background-image: url('/assets/images/bills/Pay-DSTV-Subscription.jpg')
+}
+
+.isp-provider.isp-provider-gotv {
+    background-image: url('/assets/images/bills/Gotv-Payment.jpg')
+}
+
+.isp-provider.isp-provider-startimes {
+    background-image: url('/assets/images/bills/Startimes-Subscription.jpg')
+}
+
+.isp-provider.isp-provider-showmax {
+    background-image: url('/assets/images/bills/ShowMax.jpg')
+}
