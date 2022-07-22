@@ -123,14 +123,14 @@
                     <li class="dropdown"> <a class="dropdown-toggle" href="javascript:void(0);">Bills</a>
                         <ul class="dropdown-menu">
                             <li @if(Request::url() == route('tv')) class="active" @endif><a class="dropdown-item" href="{{route('tv')}}" data-turbo="false">Cable TV</a></li>
-                            <li @if(Request::url() == route('electricity')) class="active" @endif><a class="dropdown-item" href="{{route('electricity')}}" data-turbo="false">Electricity</a></li>
-                            <li @if(Request::url() == route('betting')) class="active" @endif><a class="dropdown-item" href="{{route('betting')}}" data-turbo="false">Betting</a></li>
+                            {{-- <li @if(Request::url() == route('electricity')) class="active" @endif><a class="dropdown-item" href="{{route('electricity')}}" data-turbo="false">Electricity</a></li> --}}
+                            {{-- <li @if(Request::url() == route('betting')) class="active" @endif><a class="dropdown-item" href="{{route('betting')}}" data-turbo="false">Betting</a></li> --}}
                             {{-- <li @if(Request::url() == route('dashboard')) class="active" @endif><a class="dropdown-item" href="{{route('dashboard')}}">Convert Airtime</a></li> --}}
                             {{-- <li @if(Request::url() == route('dashboard')) class="active" @endif><a class="dropdown-item" href="{{route('dashboard')}}">Educational</a></li> --}}
                         </ul>
                     </li>
-                    <li><a href="{{route('main')}}">Fund Wallet</a></li>
-                    <li><a href="{{route('main')}}">Transfer</a></li>
+                    <li><a href="{{route('fund')}}">Fund Wallet</a></li>
+                    <li><a href="{{route('fund-transfer')}}" data-turbo="false">Transfer</a></li>
                     <li @if(Request::url() == route('transactions')) class="active" @endif><a href="{{route('transactions')}}">Trasnactions</a></li>
                 @else
                     <li><a href="{{route('main')}}">Home</a></li>

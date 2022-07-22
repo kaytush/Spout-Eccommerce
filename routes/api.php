@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Web\FlutterwaveHookController;
+use App\Http\Controllers\Api\Web\BudPayHookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +19,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+//Budpay Webhook (All webhooks from budpay)
+Route::post('/budpay/webhooks', [BudPayHookController::class, 'budpayWebhooks']);
+
+//Flutterwave Webhook (All webhooks from flutterwave)
+Route::post('/flutterwave/webhooks', [FlutterwaveHookController::class, 'flutterwaveWebhooks']);

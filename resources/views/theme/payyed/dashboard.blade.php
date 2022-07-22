@@ -101,7 +101,7 @@
                             <button type="button" class="close font-weight-400" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         </div>
                         <div class="modal-body p-4">
-                            <form id="addbankaccount" method="POST" action="{{ route('fund-now') }}">
+                            <form id="addbankaccount" method="POST" action="{{ route('card-funding') }}">
                                 @csrf
                                 <div class="form-group">
                                     <label for="bankName">Payment Method</label>
@@ -117,7 +117,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="accountNumber">Amount</label>
-                                    <input type="number" class="form-control" data-bv-field="accountNumber" onkeyup="calculate();" id="accountNumber" required value="" placeholder="100" />
+                                    <input type="number" class="form-control" data-bv-field="accountNumber" onkeyup="calculate();" id="accountNumber" name="amount" required value="" placeholder="100" />
                                 </div>
                                 <p id="show"><button class="btn btn-primary btn-block" disabled> ... </button></p>
                             </form>
@@ -297,7 +297,7 @@
             var amount = $('#accountNumber').val();
             var gate = $("#bankName option:selected").val();
 
-            if (amount != "" && gate != "") {
+            if (amount != "" && amount.length > 2 && gate != "") {
                 document.getElementById("show").innerHTML = "<button class='btn btn-primary btn-block' onclick='this.form.requestSubmit(); mySubmitFunction();'>Fund Now</button>";
             }else{
                 document.getElementById("show").innerHTML = "<button class='btn btn-primary btn-block' disabled> ... </button>";

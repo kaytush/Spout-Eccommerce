@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Gateways\BudPay;
 use App\Models\GeneralSettings;
 use App\Models\User;
 use App\Models\UserLogin;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 use Illuminate\Http\Request;
+use Session;
 use Carbon\Carbon;
 
 class UserController extends Controller
@@ -95,20 +97,91 @@ class UserController extends Controller
         return view('theme.'.$this->theme.'.logs.transactions', $data);
     }
 
-    // Generate Wallet Address
-    public function generateAddress($coin){
-        $data['timenow'] = Carbon::now();
-        $data['general'] = GeneralSettings::first();
-            //Enter Log
-            Log::notice("Attempt generating ".$coin." wallet address for User: ".auth()->user()->name  . " [User Email: ".auth()->user()->email."]");
-        //generate tron address
-        if($coin == "BNB"){
-            $bnb_password  = Str::random(13);
-            // generate BNB address
+    //Fund Wallet
+    public function fund(){
+        $data['page_title'] = "Fund Wallet";
+        return view('theme.'.$this->theme.'.fund.index', $data);
+    }
+
+    // fund wallet request
+    public function fundWithCard(Request $request)
+    {
+        $request->validate([
+            'bankName' => 'required | string',
+            'amount' => 'required | numeric',
+        ]);
+
+        if($request->amount < 100){
+            return back()->withErrors('Amount can not be less than 100');
+        }
+
+        Session::put('Amount', $request->amount);
+        Session::put('bankName', $request->bankName);
+
+        return redirect()->route('fund-preview');
+
+    }
+
+    public function fundPreview()
+    {
+        $data['page_title'] = "Fund Preview";
+        $data['amount'] = Session::get('Amount');
+        $data['bankName'] = Session::get('bankName');
+
+        $data['trx'] = Carbon::now()->timestamp . rand();
+
+        return view('theme.'.$this->theme.'.fund.preview', $data);
+
+    }
+
+    public function fundNow(Request $request)
+    {
+        $request->validate([
+            'bankName' => 'required | string',
+            'amount' => 'required | numeric',
+            'trx' => 'required',
+        ]);
+        // $fee = (1.5 * $amount)/100;
+        $fee = 0;
+        $total_amount = $request->amount + $fee;
+        $pick_trx = $request->trx;
+
+        //check if trx already exist
+        $c_trx = Deposit::where('trx', $pick_trx)->first();
+        if(!$c_trx){
+            $trx = $pick_trx;
+        }else{
+            $trx = Carbon::now()->timestamp . rand();
+        }
+
+        $fund['user_id'] = auth()->user()->id;
+        $fund['amount'] = $request->amount;
+        $fund['fee'] = $fee;
+        $fund['total_amount'] = $total_amount;
+        $fund['trx'] = $trx;
+        $fund['gateway'] = $request->bankName;
+        Deposit::create($fund);
+
+        $data['firstname'] = auth()->user()->firstname;
+        $data['lastname'] = auth()->user()->lastname;
+        $data['name'] = auth()->user()->lastname . " ".auth()->user()->firstname;
+        $data['email'] = auth()->user()->email;
+        $data['phone'] = auth()->user()->phone;
+        $data['amount'] = $request->amount;
+        $data['fee'] = $fee;
+        $data['total_amount'] = $total_amount;
+        $data['trx'] = $trx;
+        $data['key'] = env('FLUTTERWAVE_PUB_KEY');
+
+        if($request->bankName == "flutterwave"){
+            return view('payment.flutterwave-payment', $data);
+        }
+        elseif($request->bankName == "budpay"){
+            // generate budpay payment link
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => env('CHAINGATEWAY_BNB_URL') . "newAddress",
+                CURLOPT_URL => env('BUD_URL').'transaction/initialize',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
@@ -116,208 +189,156 @@ class UserController extends Controller
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => '{"password": "' . $bnb_password . '", "apikey": "' . env('CHAINGATEWAY_KEY') . '"}',
+                CURLOPT_POSTFIELDS =>'{
+                    "email": "' . auth()->user()->email . '",
+                    "amount": "' . $total_amount . '",
+                    "currency": "NGN",
+                    "ref": "' . $trx . '",
+                    "callback": "' . env('APP_URL') . '/bdconfirmpayment/'.$trx.'"
+                    }',
                 CURLOPT_HTTPHEADER => array(
-                    'Authorization: ' . env('CHAINGATEWAY_KEY'),
+                    'Authorization: Bearer '. env('BUD_SK_KEY'),
                     'Content-Type: application/json'
                 ),
             ));
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
             $response = curl_exec($curl);
 
             curl_close($curl);
 
             $res = json_decode($response, true);
-            //Enter Log
-            Log::notice(json_encode($res)  . " - for [UserEmail: ".auth()->user()->email."] generate BNB wallet request");
 
-            if ($res['ok'] == true){
-                $u=User::find(auth()->user()->id);
-                $u->bnb_wallet = $res['binancecoinaddress'];
-                $u->bnb_password = $res['password'];
-                $u->save();
-                //Enter Log
-                Log::notice("[UserEmail: ".auth()->user()->email."] - generated wallet data saved successfully");
+            Log::info("Budpay Payment link generated for deposit - ".json_encode($res));
 
-                //subscribe to tron address
-                //Enter Log
-                Log::notice("[UserEmail: ".auth()->user()->email."] - attempting generated wallet IPN subscription");
-
-                $curl = curl_init();
-
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => env('CHAINGATEWAY_BNB_URL') . "subscribeAddress",
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => '{"apikey": "' . env('CHAINGATEWAY_KEY') . '", "binancecoinaddress": "' . $u->bnb_wallet . '", "contractaddress": "' . env('CHAINGATEWAY_BEP20_CONTRACT_ADDRESS') . '", "url": "' . env('APP_URL') . 'api/secure-binance-ipn"}',
-                    CURLOPT_HTTPHEADER => array(
-                        'Authorization: ' . env('CHAINGATEWAY_KEY'),
-                        'Content-Type: application/json'
-                    ),
-                ));
-                curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-                $response = curl_exec($curl);
-
-                curl_close($curl);
-
-                $res = json_decode($response, true);
-                //Enter Log
-                Log::notice(json_encode($res)  . " - for [UserEmail: ".auth()->user()->email."] generate BNB wallet IPN subscription");
-                if ($res['ok'] == true && $res['binancecoinaddress'] == $u->bnb_wallet){
-                    $u=User::find(auth()->user()->id);
-                    $u->bnb_ipn_sub = 1;
-                    $u->save();
-                    //Enter Log
-                    Log::alert("[UserEmail: ".auth()->user()->email."] - updated BNB IPN status to 1 successfully");
-                }
-                return redirect()->route('wallet', 'BNB')->with(["success"=>"BUSD(BEP20) Deposit Wallet Address Generated"]);
+            if($res['status'] == true){
+                // log deposit
+                $deposit=Deposit::where('trx', $trx)->first();
+                $deposit->trans=$res['data']['access_code'];
+                $deposit->save();
+                // get link and redirect
+                return redirect()->away($res['data']['authorization_url']);
             }else{
-                return back()->with(["alert"=>"Unable to generate BUSD(BEP20) Deposit Wallet Address at the moment"]);
-            }
-
-        }elseif($coin == "TRX"){
-            // generate trx address
-            $curl = curl_init();
-
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => env('CHAINGATEWAY_TRX_URL') . "newAddress",
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => '{"apikey": "' . env('CHAINGATEWAY_KEY') . '"}',
-                CURLOPT_HTTPHEADER => array(
-                    'Authorization: ' . env('CHAINGATEWAY_KEY'),
-                    'Content-Type: application/json'
-                ),
-            ));
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-            $response = curl_exec($curl);
-
-            curl_close($curl);
-
-            $res = json_decode($response, true);
-            //Enter Log
-            Log::notice(json_encode($res)  . " - for [UserEmail: ".auth()->user()->email."] generate wallet request");
-
-            if ($res['ok'] == true){
-                $u=User::find(auth()->user()->id);
-                $u->trx_wallet = $res['address'];
-                $u->trx_privatekey = $res['privatekey'];
-                $u->trx_hexaddress = $res['hexaddress'];
-                $u->save();
-                //Enter Log
-                Log::notice("[UserEmail: ".auth()->user()->email."] - generated wallet data saved successfully");
-
-                //subscribe to tron address
-                //Enter Log
-                Log::notice("[UserEmail: ".auth()->user()->email."] - attempting generated TRX wallet IPN subscription");
-
-                $curl = curl_init();
-
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => env('CHAINGATEWAY_TRX_URL') . "subscribeAddress",
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => '{"apikey": "' . env('CHAINGATEWAY_KEY') . '","tronaddress": "' . $u->trx_wallet . '","contractaddress": "' . env('CHAINGATEWAY_TRC20_CONTRACT_ADDRESS') . '", "url": "' . env('APP_URL') . 'api/secure-tron-ipn"}',
-                    CURLOPT_HTTPHEADER => array(
-                        'Authorization: ' . env('CHAINGATEWAY_KEY'),
-                        'Content-Type: application/json'
-                    ),
-                ));
-                curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-                $response = curl_exec($curl);
-
-                curl_close($curl);
-
-                $res = json_decode($response, true);
-                //Enter Log
-                Log::notice(json_encode($res)  . " - for [UserEmail: ".auth()->user()->email."] generate wallet TRX IPN subscription");
-                if ($res['ok'] == true && $res['tronaddress'] == $u->trx_wallet){
-                    $u=User::find(auth()->user()->id);
-                    $u->trx_ipn_sub = 1;
-                    $u->save();
-                    //Enter Log
-                    Log::alert("[UserEmail: ".auth()->user()->email."] - updated IPN status to 1 successfully");
-                }
-                return redirect()->route('wallet', 'TRX')->with(["success"=>"USDT(TRC20) Deposit Wallet Address Generated"]);
-            }else{
-                return back()->with(["alert"=>"Unable to generate USDT(TRC20) Deposit Wallet Address at the moment"]);
+                // return error
+                return back()->with('alert', 'payment option not available at the moment');
             }
         }
+
+        return back()->with('alert', 'No Payment Option Selected');
+
     }
 
-    // wallets
-    public function wallet($coin){
-        if($coin == "BNB"){
-            $data['wallet'] = "BUSD (BEP20)";
-            $varb = "bnb:" . auth()->user()->bnb_wallet;
-        }elseif($coin == "TRX"){
-            $data['wallet'] = "USDT (TRC20)";
-            $varb = "tron:" . auth()->user()->trx_wallet;
+    // Flutterwave callback
+    public function flconfirmpayment($trx, $trans)
+    {
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => env('FLUTTERWAVE_URL')."transactions/".$trans."/verify",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                "Content-Type: application/json",
+                "Authorization: Bearer ".env('FLUTTERWAVE_SEC_KEY')
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        $res=json_decode($response, true);
+
+        if($res['status']!="success"){
+            return redirect()->route('dashboard')->with('alert', 'Invalid payment!');
         }
-        $data['address'] = $varb;
-        $data['qrcode'] = "<img src=\"https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=$varb&choe=UTF-8\" title='' style='width:250px;' />";
 
-        return view('wallet', $data);
+        $deposit=Deposit::where('trx', $trx)->first();
+        $deposit->trans=$trans;
+        $deposit->save();
+
+        return redirect()->route('dashboard')->with('success', 'Fund Added successfully');
     }
 
-    // Current Presale
-    public function presale(){
-        $data['timenow'] = Carbon::now();
-        $data['general'] = GeneralSettings::first();
-        $data['presale'] = Presale::where('start_time','<', $data['timenow'])->where('end_time','>', $data['timenow'])->where('status',1)->first();
-        if(!$data['presale']){
-            return redirect()->route('dashboard')->with(['error'=>"This Presale is not available at the moment, Try again later"]);
+    // Budpay callback
+    public function bdconfirmpayment($trx)
+    {
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => env('BUD_URL')."transaction/verify/:".$trx,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                "Content-Type: application/json",
+                "Authorization: Bearer ".env('BUD_SK_KEY')
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        $res=json_decode($response, true);
+
+        if($res['status']!="success"){
+            return redirect()->route('dashboard')->with('alert', 'Invalid payment!');
+        }else{
+            return redirect()->route('dashboard')->with('alert', 'Fund Added Successfully');
         }
-        $view = $data['presale'];
-        $view->views += 1;
-        $view->save();
-        $data['sold'] = Deposit::where(['presale_id'=>$data['presale']->id])->sum('amount');
-        $data['recent'] = Deposit::where(['presale_id'=>$data['presale']->id])->latest()->take(5)->get();
-        return view('presale', $data);
+
+        return redirect()->route('dashboard')->with('success', 'Fund Added successfully');
     }
 
-    // View a Presale
-    public function viewPresale($slug){
-        $data['timenow'] = Carbon::now();
-        $data['general'] = GeneralSettings::first();
-        $data['presale'] = Presale::where(['slug'=>$slug])->first();
-        if(!$data['presale']){
-            return redirect()->route('dashboard')->with(['error'=>"This Presale is not available at the moment, Try again later"]);
+    //Wallet Transfer
+    public function fundTransfer(){
+        $data['page_title'] = "Fund Transfer";
+        $call = new BudPay();
+        $res = $call->bankList();
+
+        if($res['success'] == true){
+            $data['list'] = $res['data'];
+        }else{
+            $data['list'] = [];
         }
-        $view = $data['presale'];
-        $view->views += 1;
-        $view->save();
-        $data['sold'] = Deposit::where(['presale_id'=>$data['presale']->id])->sum('amount');
-        $data['recent'] = Deposit::where(['presale_id'=>$data['presale']->id])->latest()->take(5)->get();
-        return view('presale', $data);
+        return view('theme.'.$this->theme.'.transfer.index', $data);
     }
 
-    // Like a Presale
-    public function likes($id){
-        $likes = Presale::where(['id'=>$id])->first();
-        $likes->likes += 1;
-        $likes->save();
-        $data = $likes->likes;
-        return response()->json($data, 200);
+    // Account Name verify
+    public function verifyAccName($bank_code, $account_number)
+    {
+        if($bank_code == 0){
+            // fetch account name from system
+            $receiver = User::where('email', $account_number)->orWhere('username', $account_number)->orWhere('phone', $account_number)->first();
+
+            if(!$receiver){
+                $data = NULL;
+            }else{
+                $data = $receiver->firstname." ".$receiver->lastname;
+            }
+            $res = ['success' => true, 'message' => 'Account name retrieved', 'data' => ['account_number' => '','account_name' => $data, 'bank_code' => 0,'bank_name' => '',]];
+        }else{
+            // fetch account name from gateway provider
+            $call = new BudPay();
+            $new = new Request([
+                'bank_code' => $bank_code,
+                'account_number' => $account_number,
+            ]);
+            $res = $call->accountNameVerify($new);
+        }
+
+        return $res;
     }
 
     // Profile Settings

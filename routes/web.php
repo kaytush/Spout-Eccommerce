@@ -45,7 +45,16 @@ Route::middleware(['middleware' => 'auth'])->group(function () {
             Route::get('transactions', 'transactions')->name('transactions');
             // Fund Wallet
             Route::get('fund', 'fund')->name('fund');
+            Route::post('card-funding', 'fundWithCard')->name('card-funding');
+            Route::get('fund-preview', 'fundPreview')->name('fund-preview');
             Route::post('fund-now', 'fundNow')->name('fund-now');
+            Route::get('/bdconfirmpayment/{trx}', 'bdconfirmpayment')->name('bdconfirmpayment');
+            Route::get('/flconfirmpayment/{trx}/{trans}', 'flconfirmpayment')->name('flconfirmpayment');
+            // Fund Wallet
+            Route::get('fund-transfer', 'fundTransfer')->name('fund-transfer');
+            Route::get('/account_name/validate/{provider}/{number}', 'verifyAccName')->name('acc-name-verify');
+            Route::post('validate-transfer', 'transferValidate')->name('validate-transfer');
+            Route::get('transfer-preview', 'transaferPreview')->name('transfer-preview');
         });
         // Bills Controller
         Route::controller(BillsController::class)->group(function () {
