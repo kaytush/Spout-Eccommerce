@@ -21,7 +21,8 @@ Route::get('/register/ref/{ref}', [RegisteredUserController::class, 'createwithr
 //referral link ends
 
 Route::post('/register', [RegisteredUserController::class, 'store'])
-                ->middleware('guest');
+                ->middleware('guest')
+                ->name('register');
 
 Route::get('/login', [AuthenticatedSessionController::class, 'create'])
                 ->middleware('guest')
@@ -29,7 +30,7 @@ Route::get('/login', [AuthenticatedSessionController::class, 'create'])
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
                 ->middleware('guest')
-                ->name('register');
+                ->name('login');
 
 Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->middleware('guest')

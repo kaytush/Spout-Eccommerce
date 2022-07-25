@@ -109,12 +109,14 @@ class RegisteredUserController extends Controller
         }
 
         $email_code  = random_int(0000, 9999);
+        // return $email_code;
 
         Auth::login($user = User::create([
             'firstname' => $request->firstname,
             'lastname' => $request->lastname,
             'email' => $request->email,
             'username' => $request->username,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'referral' => $referral,
             'email_verified' => $email_verified,

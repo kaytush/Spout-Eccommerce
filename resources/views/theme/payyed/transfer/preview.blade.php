@@ -39,10 +39,6 @@
                 <div class="row">
                     <div class="col-md-9 col-lg-7 col-xl-6 mx-auto">
                         <div class="bg-white shadow-sm rounded p-3 pt-sm-4 pb-sm-5 px-sm-5 mb-4">
-                            <div class="text-center">
-                                <img style="border-radius: 20px" src="{{url('assets/images/'.$bankName.'.png')}}" width="80px" height="80px" alt="avatar">
-                            </div>
-                            <hr class="mx-n3 mx-sm-n5 mb-4" />
                             <!-- Deposit Money Confirm
                     ============================================= -->
                             @if (session('error'))
@@ -59,34 +55,24 @@
                                     </div>
                                 </div>
                             @endif
-                            <form id="form-send-money" action="{{route('fund-now')}}" method="POST">
+                            <form id="form-send-money" action="{{route('transfer-now')}}" method="POST">
                                 <div class="form-group">
                                     @csrf
-                                    <input type="hidden" name="bankName" value="{{$bankName}}">
                                     <input type="hidden" name="amount" value="{{$amount}}">
-                                    <input type="hidden" name="trx" value="{{$trx}}">
+                                    <input type="hidden" name="number" value="{{$number}}">
+                                    <input type="hidden" name="bankName" value="{{$bankName}}">
+                                    <input type="hidden" name="bank_code" value="{{$bank_code}}">
                                 </div>
                                 <div class="alert alert-info rounded shadow-sm py-3 px-4 px-sm-2 mb-5">
-                                    <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Gateway:</p>
-                                        <p class="col-sm-7 text-3">{{ucfirst($bankName)}}</p>
-                                    </div>
-                                    <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Mobile Number:</p>
-                                        <p class="col-sm-7 text-3">{{$basic->currency_sym.number_format($amount, $basic->decimal)}}</p>
-                                    </div>
-                                    <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0">Wallet Balance:</p>
-                                        <p class="col-sm-7 text-3 mb-0"><font @if(auth()->user()->balance > $amount) color="green" @else color="red" @endif>{{ $basic->currency_sym.number_format(auth()->user()->balance, $basic->decimal) }}</font></p>
-                                    </div>
+                                    <p class="text-center">You are Transfering<br>
+                                    to<br>
+                                    <span class="font-weight-500">{{$bankName}} - {{$number}}<br>{{$acc_name}}</span></p>
                                 </div>
                                 <hr class="mx-n3 mx-sm-n5 mb-4" />
-                                <h3 class="text-5 font-weight-400 mb-4">Details</h3>
-                                <hr class="mx-n3 mx-sm-n5 mb-4" />
                                 <p class="mb-1">Amount <span class="text-3 float-right">{{$basic->currency_sym.number_format($amount,$basic->decimal)}}</span></p>
-                                <p class="mb-1">Fee <span class="text-3 float-right">{{$basic->currency_sym.number_format(0,$basic->decimal)}}</span></p>
+                                <p class="mb-1">Fee <span class="text-3 float-right">{{$basic->currency_sym.number_format($fee,$basic->decimal)}}</span></p>
                                 <hr />
-                                <p class="text-4 font-weight-500">Total<span class="float-right">{{$basic->currency_sym.number_format(($amount),$basic->decimal)}}</span></p>
+                                <p class="text-4 font-weight-500">Total<span class="float-right">{{$basic->currency_sym.number_format(($amount + $fee),$basic->decimal)}}</span></p>
                                 <button class="btn btn-primary btn-block" onclick="this.disabled=true;this.innerHTML='Processing...';this.form.submit();">Confirm</button>
                             </form>
                             <!-- Deposit Money Confirm end -->

@@ -116,12 +116,40 @@
                                     </div>
                                 </div>
                             @enderror
+                            @error('bankName')
+                                <div class="alert alert-info rounded shadow-sm py-3 px-4 px-sm-2 mb-5">
+                                    <div class="form-row align-items-center">
+                                        {{ $message }}
+                                    </div>
+                                </div>
+                            @enderror
+                            @error('bank_code')
+                                <div class="alert alert-info rounded shadow-sm py-3 px-4 px-sm-2 mb-5">
+                                    <div class="form-row align-items-center">
+                                        {{ $message }}
+                                    </div>
+                                </div>
+                            @enderror
+                            @error('acc_name')
+                                <div class="alert alert-info rounded shadow-sm py-3 px-4 px-sm-2 mb-5">
+                                    <div class="form-row align-items-center">
+                                        {{ $message }}
+                                    </div>
+                                </div>
+                            @enderror
+                            @error('username')
+                                <div class="alert alert-info rounded shadow-sm py-3 px-4 px-sm-2 mb-5">
+                                    <div class="form-row align-items-center">
+                                        {{ $message }}
+                                    </div>
+                                </div>
+                            @enderror
                             <!-- Deposit Money Form
                     ============================================= -->
                             <div class="text-center bg-primary p-4 rounded mb-4">
                                 <h3 class="text-10 text-white font-weight-400">{{$gnl->currency_sym.number_format(auth()->user()->balance, $gnl->decimal)}}</h3>
                                 <p class="text-white">Available Balance</p>
-                                <a href="javascript:void(0);" class="btn btn-outline-light btn-sm shadow-none text-uppercase rounded-pill text-1">Transfer Full Amount</a>
+                                <a href="javascript:void(0);" onclick="fullAmount();" class="btn btn-outline-light btn-sm shadow-none text-uppercase rounded-pill text-1">Transfer Full Amount</a>
                             </div>
                             <form id="form-send-money" method="POST" action="{{ route('validate-transfer') }}">
                                 @csrf
@@ -143,16 +171,21 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="withdrawto">Destination Bank</label>
-                                    <select id="provider" onchange="switchP();" class="custom-select" required="">
+                                    <select id="provider" onchange="switchP();" class="custom-select" name="bank_code" required="">
                                     <option value="0">{{$gnl->sitename}} (Internal Transfer)</option>
                                     @foreach ($list as $data)
-                                        <option value="{{$data['bank_code']}}">{{$data['bank_name']}}</option>
+                                        <option value="{{$data['bank_code']}}" data-bank="{{$data['bank_name']}}">{{$data['bank_name']}}</option>
                                     @endforeach
                                     </select>
+                                    <input type="hidden" id="bankName" name="bankName" value="{{$gnl->sitename}}" />
                                 </div>
-                                <div class="form-group" id="switch">
+                                <div class="form-group" id="switch1">
                                     <label for="number">Account Email/Username/Phone Number</label>
-                                    <input type="text" name="number" class="form-control" data-bv-field="amount" id="number" data-type="0" autocomplete="offInput" onkeyup="verify(this.value)" required placeholder="Email/Username/Phone Number">
+                                    <input type="text" name="username" class="form-control" data-bv-field="amount" id="username" data-type="0" autocomplete="offInput" onkeyup="verify(this.value)" placeholder="Email/Username/Phone Number">
+                                </div>
+                                <div class="form-group" id="switch2" style="display: none">
+                                    <label for="number">Account Number</label>
+                                    <input type="number" name="number" class="form-control" data-bv-field="amount" id="number" data-type="1" autocomplete="offInput" onkeyup="vverify(this.value)" placeholder="Account Number">
                                 </div>
                                 <p class="text-muted text-center"><span class="font-weight-500" id="accname"></span></p>
                                 <hr>
@@ -160,8 +193,9 @@
                                     Transaction fee <span class="float-right d-flex align-items-center" id="fee"><span class="bg-info text-1 text-white font-weight-500 rounded d-inline-block px-2 line-height-4 ml-2">Free</span></span>
                                 </p>
                                 <hr />
+                                <input type="hidden" id="acc_name" name="acc_name" />
                                 <p class="text-4 font-weight-500">You'll pay <span class="float-right" id="total">{{$basic->currency_sym.number_format(0,$basic->decimal)}}</span></p>
-                                <button id="show" class="btn btn-primary btn-block" onclick="this.form.requestSubmit(); mySubmitFunction();">Continue</button>
+                                <button id="show" class="btn btn-primary btn-block" disabled onclick="this.form.requestSubmit(); mySubmitFunction();">Continue</button>
                             </form>
                             <!-- Deposit Money Form end -->
                         </div>
@@ -189,35 +223,108 @@
                 document.getElementById("total").innerHTML = '{{$basic->currency_sym}}'+total.toLocaleString("en-US");
             };
 
+            function fullAmount() {
+                var amount = parseInt("{{auth()->user()->balance}}");
+                var fee = parseInt("{{$basic->transfer_fee}}");
+                var number = $('#number').val();
+                var minAmount = 100;
+                var total = parseInt(amount) - parseInt(fee);
+
+                if(total >  0){
+                    $("#amount").val(total);
+                }else{
+                    $("#amount").val(0);
+                }
+
+                if(fee == 0){
+                    document.getElementById("fee").innerHTML = '<span class="bg-info text-1 text-white font-weight-500 rounded d-inline-block px-2 line-height-4 ml-2">Free</span>';
+                }else{
+                    document.getElementById("fee").innerHTML = '{{$basic->currency_sym}}'+fee.toLocaleString("en-US");
+                }
+
+                document.getElementById("total").innerHTML = '{{$basic->currency_sym}}'+amount.toLocaleString("en-US");
+
+                if (amount > minAmount && number.length > 3) {
+                    document.getElementById("show").disabled = false;
+                }else{
+                    document.getElementById("show").disabled = true;
+                }
+            }
+
             function switchP() {
                 var amount = $('#amount').val();
                 var bank = $("#provider option:selected").val();
+                var bankName = $("#provider option:selected").attr('data-bank');
 
                 if (bank == 0) {
-                    document.getElementById("switch").innerHTML = '<label for="number">Account Email/Username/Phone Number</label><input type="text" name="number" class="form-control" data-bv-field="amount" id="number" onkeyup="verify(this.value)" data-type="0" autocomplete="offInput" required placeholder="Email/Username/Phone Number">';
+                    $("#bankName").val(bankName);
+                    document.getElementById("switch1").style.display = 'block';
+                    document.getElementById("switch1").reqired = true;
+                    document.getElementById("switch2").style.display = 'none';
                 }else if (bank > 0) {
-                    document.getElementById("switch").innerHTML = '<label for="number">Account Number</label><input type="number" name="number" class="form-control" data-bv-field="amount" id="number" onkeyup="verify(this.value)" data-type="1" autocomplete="offInput" minlength="10" maxlength="10" required placeholder="Account Number">';
+                    $("#bankName").val(bankName);
+                    document.getElementById("switch1").style.display = 'none';
+                    document.getElementById("switch2").style.display = 'block';
+                    document.getElementById("switch2").reqired = true;
                 }
 
 
-                document.getElementById("total").innerHTML = '{{$basic->currency_sym}}'+total.toLocaleString("en-US");
+                // document.getElementById("total").innerHTML = '{{$basic->currency_sym}}'+total.toLocaleString("en-US");
             };
 
             function mySubmitFunction() {
                 var amount = $('#amount').val();
                 var number = $('#number').val();
+                var username = $('#username').val();
                 var provider = $("#provider option:selected").val();
                 var minAmount = 100;
 
-                if (amount != "" && amount > minAmount && number.length > 9) {
+                if (amount != "" && amount > minAmount && number != "") {
+                    document.getElementById("show").innerHTML = "<div class='spinner'><div class='double-bounce1'></div><div class='double-bounce2'></div></div>";
+                    document.getElementById("show").disabled = true;
+                }else if (amount != "" && amount > minAmount && username != "") {
                     document.getElementById("show").innerHTML = "<div class='spinner'><div class='double-bounce1'></div><div class='double-bounce2'></div></div>";
                     document.getElementById("show").disabled = true;
                 }
             };
 
-            function verify(number) {
+            function verify(username) {
+                var provider = $("#provider option:selected").val();
+                var type = $('#username').attr('data-type');
+                var amount = $('#amount').val();
+                var minAmount = 100;
+
+                if (type == 0 && username.length > 4){
+                    document.getElementById("accname").innerHTML = "Verifying....";
+                    document.getElementById("show").disabled = true;
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.onreadystatechange = function() {
+                        if (this.readyState == 4 && this.status == 200) {
+                            var jRes=JSON.parse(this.responseText);
+                            console.log(jRes);
+                            if(jRes.success){
+                                $("#acc_name").val(jRes.data.account_name);
+                                document.getElementById("accname").innerHTML = jRes.data.account_name;
+                                document.getElementById("show").innerHTML = "Continue";
+                                document.getElementById("show").disabled = false;
+                            }else{
+                                $("#acc_name").val("-");
+                                document.getElementById("accname").innerHTML = "-";
+                                document.getElementById("show").innerHTML = "Continue";
+                                document.getElementById("show").disabled = true;
+                            }
+                        }
+                    };
+                    xmlhttp.open("GET", "/account_name/validate/"+provider+"/"+username, true);
+                    xmlhttp.send();
+                }
+            }
+
+            function vverify(number) {
                 var provider = $("#provider option:selected").val();
                 var type = $('#number').attr('data-type');
+                var amount = $('#amount').val();
+                var minAmount = 100;
 
                 if (type == 1 && number.length > 9) {
                     document.getElementById("accname").innerHTML = "Verifying....";
@@ -228,31 +335,12 @@
                             var jRes=JSON.parse(this.responseText);
                             console.log(jRes);
                             if(jRes.success){
+                                $("#acc_name").val(jRes.data.account_name);
                                 document.getElementById("accname").innerHTML = jRes.data.account_name;
                                 document.getElementById("show").innerHTML = "Continue";
                                 document.getElementById("show").disabled = false;
                             }else{
-                                document.getElementById("accname").innerHTML = "-";
-                                document.getElementById("show").innerHTML = "Continue";
-                                document.getElementById("show").disabled = true;
-                            }
-                        }
-                    };
-                    xmlhttp.open("GET", "/account_name/validate/"+provider+"/"+number, true);
-                    xmlhttp.send();
-                }else if (type == 0 && number.length > 4){
-                    document.getElementById("accname").innerHTML = "Verifying....";
-                    document.getElementById("show").disabled = true;
-                    var xmlhttp = new XMLHttpRequest();
-                    xmlhttp.onreadystatechange = function() {
-                        if (this.readyState == 4 && this.status == 200) {
-                            var jRes=JSON.parse(this.responseText);
-                            console.log(jRes);
-                            if(jRes.success){
-                                document.getElementById("accname").innerHTML = jRes.data.account_name;
-                                document.getElementById("show").innerHTML = "Continue";
-                                document.getElementById("show").disabled = false;
-                            }else{
+                                $("#acc_name").val("-");
                                 document.getElementById("accname").innerHTML = "-";
                                 document.getElementById("show").innerHTML = "Continue";
                                 document.getElementById("show").disabled = true;

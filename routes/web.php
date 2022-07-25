@@ -54,7 +54,9 @@ Route::middleware(['middleware' => 'auth'])->group(function () {
             Route::get('fund-transfer', 'fundTransfer')->name('fund-transfer');
             Route::get('/account_name/validate/{provider}/{number}', 'verifyAccName')->name('acc-name-verify');
             Route::post('validate-transfer', 'transferValidate')->name('validate-transfer');
-            Route::get('transfer-preview', 'transaferPreview')->name('transfer-preview');
+            Route::get('transfer-preview', 'transferPreview')->name('transfer-preview');
+            Route::post('transfer-now', 'transferNow')->name('transfer-now');
+            Route::get('transfer-success', 'transferSuccess')->name('transfer-success');
         });
         // Bills Controller
         Route::controller(BillsController::class)->group(function () {

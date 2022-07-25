@@ -46,8 +46,8 @@
                                 <p class="text-success text-8 font-weight-500 line-height-07">Success!</p>
                                 <p class="lead">{{session('success')}}</p>
                             </div>
-                            <p class="text-3 mb-4">You've successfully recharged <span class="text-4 font-weight-500">{{$basic->currency_sym.number_format(session('amount'),$basic->decimal)}}</span> Airtime on <span class="text-4 font-weight-500">{{session('number')}}</span>, See transaction details in <a class="btn-link" href="{{route('transactions')}}">Transaction History</a>.</p>
-                            <a href="{{route('airtime')}}" data-turbo="false" class="btn btn-primary btn-block">Buy Airtime Again</a>
+                            <p class="text-3 mb-4">You've Succesfully sent <span class="text-4 font-weight-500">{{$basic->currency_sym.number_format(session('amount'),$basic->decimal)}}</span> to <span class="text-4 font-weight-500">{{session('number')}}</span>, See transaction details in <a class="btn-link" href="{{route('transactions')}}">Transaction History</a>.</p>
+                            <a href="{{route('fund-transfer')}}" data-turbo="false" class="btn btn-primary btn-block">Transfer Again</a>
                             <a class="text-3 d-inline-block btn-link mt-4" href="javascript:void(0);" onclick="window.print();"><i class="fas fa-print"></i> Print</a>
                         </div>
                         <!-- Request Money Success end -->
