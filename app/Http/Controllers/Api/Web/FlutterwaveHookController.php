@@ -67,13 +67,13 @@ class FlutterwaveHookController extends Controller
 
         //log transaction history
         Transaction::create([
-            'user_id' => $deposit->user_idd,
+            'user_id' => $deposit->user_id,
             'title' => 'Wallet Funding',
             'service_type' => "deposit",
             'icon' => 'flutterwave',
             'provider' => 'Flutterwave',
             'recipient' => $request->number,
-            'description' => 'You funded your wallet balance with the sum of '.$gnl->currency_sym.$deposit->amount.' '.$gnl->currency,
+            'description' => 'You funded your wallet balance with the sum of '.$gnl->currency_sym.$deposit->amount,
             'amount' => $deposit->amount,
             'discount' => 0,
             'fee' => 0,
