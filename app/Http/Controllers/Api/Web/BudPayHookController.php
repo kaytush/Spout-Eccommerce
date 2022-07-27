@@ -32,7 +32,7 @@ class BudPayHookController extends Controller
         }
         $input = $request->all();
 
-        Log::info(json_encode($input));
+        Log::info("Incoming Budpay Hook".json_encode($input));
 
         // RECEIVING RESPONSE FOR BANK TANSFER (PAYOUT)
         if($input['notify'] == "transfer"){

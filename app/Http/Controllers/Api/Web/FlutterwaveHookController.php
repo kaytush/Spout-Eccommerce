@@ -32,25 +32,25 @@ class FlutterwaveHookController extends Controller
         }
         $payload = $request->all();
         // It's a good idea to log all received events.
-        Log::info(json_encode($payload));
+        Log::info("Incoming Flutterwave Hook".json_encode($payload));
         // check if already credited
-        $deposit=Deposit::where('trx', $request->txRef)->first();
+        $deposit=Deposit::where('trx', $payload['txRef'])->first();
         if($deposit->status == 1){
-            Log::notice($request->txRef." Already credited");
+            Log::notice($payload['txRef']." Already credited");
             return response(200);
         }
         // Do something (that doesn't take too long) with the payload
-        if($deposit->amount != $request->amount){
-            Log::notice($request->txRef." Amount stated not paid. and can not be approved.");
+        if($deposit->amount != $payload['amount']){
+            Log::notice($payload['txRef']." Amount stated not paid. and can not be approved.");
             abort(401);
         }
 
-        if($request->status != "successful"){
-            Log::notice($request->txRef." Payment not successful and user can not be credited.");
+        if($payload['status'] != "successful"){
+            Log::notice($payload['txRef']." Payment not successful and user can not be credited.");
             abort(401);
         }
 
-        $deposit->trans=$request->flwRef;
+        $deposit->trans=$payload['flwRef'];
         $deposit->status=1;
         $deposit->save();
 
@@ -60,7 +60,7 @@ class FlutterwaveHookController extends Controller
         $trx_log=Transaction::where('trx', $deposit->trx)->first();
         if($trx_log){
             return response(200);
-            Log::notice($request->txRef." Transaction already logged. can not proceed to crediting user.");
+            Log::notice($payload['txRef']." Transaction already logged. can not proceed to crediting user.");
         }
 
         $u=User::find($deposit->user_id);
@@ -81,12 +81,12 @@ class FlutterwaveHookController extends Controller
             'init_bal' => $u->balance,
             'new_bal' => $u->balance + $deposit->amount,
             'wallet' => "balance",
-            'reference' => $request->flwRef,
+            'reference' => $payload['flwRef'],
             'trx' => $deposit->trx,
             'channel' => "WEBSITE",
             'type' => 1,
-            'status' => $request->status,
-            'errorMsg' => "Deposit ".$request->status,
+            'status' => $payload['status'],
+            'errorMsg' => "Deposit ".$payload['status'],
 
         ]);
 
