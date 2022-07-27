@@ -85,7 +85,7 @@
                                     <select class="custom-select" id="code" name="code" onchange="calculate();">
                                         <option value="">Select Data Plan</option>
                                         @foreach ($airtel as $data)
-                                            <option value="{{$data->id}}">{{$data->name}}</option>
+                                            <option value="{{$data->id}}" data-c_cent="" data-api_cent="" data-amount="">{{$data->name}}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -111,10 +111,10 @@
             function calculate() {
                 var code = $("#code option:selected").val();
                 console.log(code);
-                var c_cent = "{{App\Models\InternetData::where('id',232)->first()->c_cent}}";
+                var c_cent = $("#code option:selected").attr('data-c_cent');
                 console.log("c cent: "+c_cent);
-                var api_cent = "{{App\Models\InternetData::where('id',232)->first()->api_cent}}";
-                var amount = "{{App\Models\InternetData::where('id',232)->first()->amount}}";
+                var api_cent = $("#code option:selected").attr('data-api_cent');
+                var amount = $("#code option:selected").attr('data-amount');
                 console.log("api cent: "+api_cent);
                 var level="{{auth()->user()->level}}";
                 console.log("Level: "+level);
@@ -160,7 +160,7 @@
                 var cars=<?php echo $plans; ?>;
                 for (let i = 0; i < cars.length; i++) {
                     if(cars[i].ip_name == id) {
-                        let newOption = new Option(cars[i].name +' (<?php echo $gnl->currency_sym; ?>' + cars[i].amount +')', cars[i].id);
+                        let newOption = new Option(cars[i].name +' (<?php echo $gnl->currency_sym; ?>' + cars[i].amount +')', cars[i].id, cars[i].c_cent, cars[i].api_cent, cars[i].amount);
                         selectBox.add(newOption, undefined);
                     }
                 }

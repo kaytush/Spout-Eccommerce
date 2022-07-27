@@ -223,7 +223,7 @@ class RegisteredUserController extends Controller
                     CURLOPT_FOLLOWLOCATION => true,
                     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                     CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => '{"customer": "' . $res['data']['customer_code'] . '"}',
+                    CURLOPT_POSTFIELDS => '{"customer": "' . $res['data']['customer_code'] . '","first_name": "' . $user->firstname . '","last_name": "' . $user->lastname . '","phone": "' . $user->phone . '"}',
                     CURLOPT_HTTPHEADER => array(
                         'Authorization: Bearer ' . env('BUD_SK_KEY'),
                         'Content-Type: application/json'

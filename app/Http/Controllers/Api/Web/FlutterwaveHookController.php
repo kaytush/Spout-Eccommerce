@@ -34,23 +34,23 @@ class FlutterwaveHookController extends Controller
         // It's a good idea to log all received events.
         Log::info(json_encode($payload));
         // check if already credited
-        $deposit=Deposit::where('trx', $request->data['tx_ref'])->first();
+        $deposit=Deposit::where('trx', $request->txRef)->first();
         if($deposit->status == 1){
-            Log::notice($request->data['tx_ref']." Already credited");
+            Log::notice($request->txRef." Already credited");
             return response(200);
         }
         // Do something (that doesn't take too long) with the payload
-        if($deposit->amount != $request->data['amount']){
-            Log::notice($request->data['tx_ref']." Amount stated not paid. and can not be approved.");
+        if($deposit->amount != $request->amount){
+            Log::notice($request->txRef." Amount stated not paid. and can not be approved.");
             abort(401);
         }
 
-        if($request->data['status'] != "successful"){
-            Log::notice($request->data['tx_ref']." Payment not successful and user can not be credited.");
+        if($request->status != "successful"){
+            Log::notice($request->txRef." Payment not successful and user can not be credited.");
             abort(401);
         }
 
-        $deposit->trans=$request->data['flw_ref'];
+        $deposit->trans=$request->flwRef;
         $deposit->status=1;
         $deposit->save();
 
@@ -60,7 +60,7 @@ class FlutterwaveHookController extends Controller
         $trx_log=Transaction::where('trx', $deposit->trx)->first();
         if($trx_log){
             return response(200);
-            Log::notice($request->data['tx_ref']." Transaction already logged. can not proceed to crediting user.");
+            Log::notice($request->txRef." Transaction already logged. can not proceed to crediting user.");
         }
 
         $u=User::find($deposit->user_id);
@@ -81,12 +81,12 @@ class FlutterwaveHookController extends Controller
             'init_bal' => $u->balance,
             'new_bal' => $u->balance + $deposit->amount,
             'wallet' => "balance",
-            'reference' => $request->data['flw_ref'],
+            'reference' => $request->flwRef,
             'trx' => $deposit->trx,
             'channel' => "WEBSITE",
             'type' => 1,
-            'status' => $request->data['status'],
-            'errorMsg' => "Deposit ".$request->data['status'],
+            'status' => $request->status,
+            'errorMsg' => "Deposit ".$request->status,
 
         ]);
 
