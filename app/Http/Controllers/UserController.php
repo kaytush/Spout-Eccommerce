@@ -194,6 +194,7 @@ class UserController extends Controller
             if($res['status'] == true){
                 // log deposit
                 $deposit=Deposit::where('trx', $trx)->first();
+                $deposit->trx=$res['data']['reference'];
                 $deposit->trans=$res['data']['access_code'];
                 $deposit->save();
                 // get link and redirect

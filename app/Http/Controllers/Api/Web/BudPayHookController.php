@@ -51,7 +51,7 @@ class BudPayHookController extends Controller
             if($input['data']['status'] == "success"){
                 // card deposit
                 if($input['data']['type'] == "transaction"){
-                    $dep = Deposit::where('trx',$input['notify']['reference'])->first();
+                    $dep = Deposit::where('trx',$input['data']['reference'])->first();
                     if($dep->amount != $input['data']['amount']){
                         Log::info("Deposit amount does not tally - trx: ".$dep->trx);
                         abort(401);
@@ -60,7 +60,7 @@ class BudPayHookController extends Controller
                         Log::info("Deposit already credited - trx: ".$dep->trx);
                         abort(401);
                     }else{
-                        $dep->status = $input['data']['status'];
+                        $dep->status = 1;
                         $dep->save();
                         // credit user
                         $user = User::where('id',$dep->user_id)->first();
@@ -82,7 +82,7 @@ class BudPayHookController extends Controller
                         abort(401);
                     }
 
-                    $dep = Deposit::where('trans',$input['notify']['reference'])->first();
+                    $dep = Deposit::where('trans',$input['data']['reference'])->first();
                     if(!$dep){
                         // Log Deposit
                         $fund['user_id'] = $user->id;
@@ -90,9 +90,9 @@ class BudPayHookController extends Controller
                         $fund['fee'] = $gnl->vacc_fee;
                         $fund['total_amount'] = $total_amount;
                         $fund['trx'] = $trx;
-                        $fund['trans'] = $input['notify']['reference'];
+                        $fund['trans'] = $input['data']['reference'];
                         $fund['gateway'] = "budpay";
-                        $fund['status'] = "success";
+                        $fund['status'] = 1;
                         Deposit::create($fund);
 
                         //log transaction history
@@ -111,7 +111,7 @@ class BudPayHookController extends Controller
                             'init_bal' => $user->balance,
                             'new_bal' => $user->balance + $total_amount,
                             'wallet' => "balance",
-                            'reference' => $input['notify']['reference'],
+                            'reference' => $input['data']['reference'],
                             'trx' => $trx,
                             'channel' => "WEBSITE",
                             'type' => 1,

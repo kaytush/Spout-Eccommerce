@@ -72,7 +72,7 @@ class FlutterwaveHookController extends Controller
             'service_type' => "deposit",
             'icon' => 'flutterwave',
             'provider' => 'Flutterwave',
-            'recipient' => $request->number,
+            'recipient' => $u->username,
             'description' => 'You funded your wallet balance with the sum of '.$gnl->currency_sym.$deposit->amount,
             'amount' => $deposit->amount,
             'discount' => 0,
