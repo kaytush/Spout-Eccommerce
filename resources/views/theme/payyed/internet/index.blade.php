@@ -85,7 +85,7 @@
                                     <select class="custom-select" id="code" name="code" onchange="calculate();">
                                         <option value="">Select Data Plan</option>
                                         @foreach ($airtel as $data)
-                                            <option value="{{$data->id}}" data-c_cent="" data-api_cent="" data-amount="">{{$data->name}}</option>
+                                            <option value="{{$data->id}}" data-c_cent="{{$data->c_cent}}" data-api_cent="{{$data->api_cent}}" data-amount="{{$data->amount}}">{{$data->name}} ({{$basic->currency_sym.number_format($data->amount,$basic->decimal)}})</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -110,17 +110,11 @@
         <script>
             function calculate() {
                 var code = $("#code option:selected").val();
-                console.log(code);
                 var c_cent = $("#code option:selected").attr('data-c_cent');
-                console.log("c cent: "+c_cent);
                 var api_cent = $("#code option:selected").attr('data-api_cent');
                 var amount = $("#code option:selected").attr('data-amount');
-                console.log("api cent: "+api_cent);
                 var level="{{auth()->user()->level}}";
-                console.log("Level: "+level);
                 var curr = '{{$basic->currency_sym}}';
-                console.log("Currency: "+curr);
-                console.log("stage 1");
 
                 if (level == 0) {
                     if (c_cent > 0) {
@@ -136,9 +130,8 @@
                         var discount = 0;
                     }
                 }
-                console.log("stage 2");
 
-                var total = 1000 - discount;
+                var total = amount - discount;
 
                 document.getElementById("discount").innerHTML = '{{$basic->currency_sym}}'+discount.toLocaleString("en-US");
                 document.getElementById("total").innerHTML = '{{$basic->currency_sym}}'+total.toLocaleString("en-US");
@@ -160,7 +153,10 @@
                 var cars=<?php echo $plans; ?>;
                 for (let i = 0; i < cars.length; i++) {
                     if(cars[i].ip_name == id) {
-                        let newOption = new Option(cars[i].name +' (<?php echo $gnl->currency_sym; ?>' + cars[i].amount +')', cars[i].id, cars[i].c_cent, cars[i].api_cent, cars[i].amount);
+                        let newOption = new Option(cars[i].name +' (<?php echo $gnl->currency_sym; ?>' + cars[i].amount +')', cars[i].id);
+                        newOption.setAttribute('data-c_cent',cars[i].c_cent);
+                        newOption.setAttribute('data-api_cent',cars[i].api_cent);
+                        newOption.setAttribute('data-amount',cars[i].amount);
                         selectBox.add(newOption, undefined);
                     }
                 }

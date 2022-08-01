@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::controller(FrontendController::class)->group(function () {
     Route::get('/', 'index')->name('main');
+    Route::get('/about', 'about')->name('about');
+    Route::get('/help', 'help')->name('help');
+    Route::get('/contact', 'contact')->name('contact');
 });
 
 
@@ -41,6 +44,12 @@ Route::middleware(['middleware' => 'auth'])->group(function () {
         Route::controller(UserController::class)->group(function () {
             // User Dashboard
             Route::get('dashboard', 'dashboard')->name('dashboard');
+            // User Profile & Settings
+            Route::get('profile', 'profile')->name('profile');
+            Route::get('account-settings', 'accountSettings')->name('account-settings');
+            Route::post('update-profile', 'profileUpdate')->name('update-profile');
+            Route::post('verify-bvn', 'verifyBVN')->name('verify-bvn');
+            Route::post('change-password', 'submitPassword')->name('change-password');
             // Transaction History
             Route::get('transactions', 'transactions')->name('transactions');
             // Fund Wallet
@@ -57,6 +66,7 @@ Route::middleware(['middleware' => 'auth'])->group(function () {
             Route::get('transfer-preview', 'transferPreview')->name('transfer-preview');
             Route::post('transfer-now', 'transferNow')->name('transfer-now');
             Route::get('transfer-success', 'transferSuccess')->name('transfer-success');
+            Route::get('claim-bonus', 'claimBonus')->name('claim-bonus');
         });
         // Bills Controller
         Route::controller(BillsController::class)->group(function () {

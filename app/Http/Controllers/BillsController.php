@@ -486,49 +486,56 @@ class BillsController extends Controller
         }
 
         if($request->provider != "SHOWMAX"){
-            $curl = curl_init();
+            // $curl = curl_init();
 
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => env('GIFTBILLS_URL') . "tv/validate",
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => '{"provider": "' . $request->provider . '","number": "' . $request->number . '"}',
-                CURLOPT_HTTPHEADER => array(
-                    'Content-Type: application/json',
-                    'Authorization: Bearer '.env('GIFTBILLS_KEY'),
-                    'MerchantId: '.env('GIFTBILLS_MID')
-                ),
-            ));
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+            // curl_setopt_array($curl, array(
+            //     CURLOPT_URL => env('GIFTBILLS_URL') . "tv/validate",
+            //     CURLOPT_RETURNTRANSFER => true,
+            //     CURLOPT_ENCODING => '',
+            //     CURLOPT_MAXREDIRS => 10,
+            //     CURLOPT_TIMEOUT => 0,
+            //     CURLOPT_FOLLOWLOCATION => true,
+            //     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            //     CURLOPT_CUSTOMREQUEST => 'POST',
+            //     CURLOPT_POSTFIELDS => '{"provider": "' . $request->provider . '","number": "' . $request->number . '"}',
+            //     CURLOPT_HTTPHEADER => array(
+            //         'Content-Type: application/json',
+            //         'Authorization: Bearer '.env('GIFTBILLS_KEY'),
+            //         'MerchantId: '.env('GIFTBILLS_MID')
+            //     ),
+            // ));
+            // curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
-            $response = curl_exec($curl);
+            // $response = curl_exec($curl);
 
-            curl_close($curl);
+            // curl_close($curl);
 
 
-            $res = json_decode($response, true);
+            // $res = json_decode($response, true);
 
-            if(isset($res['content']['error'])){
-                return back()->with(['error' => 'Incorrect SmartCard number. Please try with a correct one']);
-            }
+            // if(isset($res['content']['error'])){
+            //     return back()->with(['error' => 'Incorrect SmartCard number. Please try with a correct one']);
+            // }
 
-            if ($res['success'] == true){
-                Session::put('provider', $request->provider);
-                Session::put('number', $request->number);
-                Session::put('code', $request->code);
-                if(isset($res['data']['Customer_Name'])){
-                    Session::put('Customer_Name', $res['data']['Customer_Name']);
-                }else{
-                    Session::put('Customer_Name', "");
-                }
+            // if ($res['success'] == true){
+            //     Session::put('provider', $request->provider);
+            //     Session::put('number', $request->number);
+            //     Session::put('code', $request->code);
+            //     if(isset($res['data']['Customer_Name'])){
+            //         Session::put('Customer_Name', $res['data']['Customer_Name']);
+            //     }else{
+            //         Session::put('Customer_Name', "");
+            //     }
 
-                return redirect()->route('tv-preview');
-            }
+            //     return redirect()->route('tv-preview');
+            // }
+
+            Session::put('provider', $request->provider);
+            Session::put('number', $request->number);
+            Session::put('code', $request->code);
+            Session::put('Customer_Name', $request->acc_name);
+
+            return redirect()->route('tv-preview');
         }elseif($request->provider == "SHOWMAX"){
             Session::put('provider', $request->provider);
             Session::put('number', $request->number);

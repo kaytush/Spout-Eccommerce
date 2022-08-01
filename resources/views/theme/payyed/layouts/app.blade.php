@@ -133,12 +133,11 @@
                     <li><a href="{{route('fund-transfer')}}" data-turbo="false">Transfer</a></li>
                     <li @if(Request::url() == route('transactions')) class="active" @endif><a href="{{route('transactions')}}">Trasnactions</a></li>
                 @else
-                    <li><a href="{{route('main')}}">Home</a></li>
-                    <li><a href="{{route('main')}}">Home</a></li>
-                    <li><a href="{{route('main')}}">Pricing</a></li>
-                    <li><a href="{{route('main')}}">Home</a></li>
-                    <li><a href="{{route('main')}}">Help</a></li>
-                    <li><a href="{{route('main')}}">Contact Us</a></li>
+                    <li @if(Request::url() == route('main')) class="active" @endif><a href="{{route('main')}}">Home</a></li>
+                    <li @if(Request::url() == route('about')) class="active" @endif><a href="{{route('about')}}">About</a></li>
+                    <li @if(Request::url() == route('main')) class="active" @endif><a href="{{route('main')}}">Pricing</a></li>
+                    <li @if(Request::url() == route('help')) class="active" @endif><a href="{{route('help')}}">Help</a></li>
+                    <li @if(Request::url() == route('contact')) class="active" @endif><a href="{{route('contact')}}">Contact Us</a></li>
                 @endauth
               </ul>
             </div>
@@ -156,28 +155,23 @@
                         <li><a class="dropdown-item" href="javascript:void(0);">English</a></li>
                         </ul>
                     </li>
-                    <li class="dropdown notifications"> <a class="dropdown-toggle" href="javascript:void(0);"><span class="text-5"><i class="far fa-bell"></i></span><span class="count">3</span></a>
-                        <ul class="dropdown-menu">
-                            <li class="text-center text-3 py-2">Notifications (3)</li>
-                            <li class="dropdown-divider mx-n3"></li>
-                            <li><a class="dropdown-item" href="dashboard.html#"><i class="fas fa-bell"></i>A new digital FIRC document is available for you to download<span class="text-1 text-muted d-block">22 Jul 2020</span></a></li>
-                            <li><a class="dropdown-item" href="dashboard.html#"><i class="fas fa-bell"></i>Updates to our privacy policy. Please read.<span class="text-1 text-muted d-block">04 March 2020</span></a></li>
-                            <li><a class="dropdown-item" href="dashboard.html#"><i class="fas fa-bell"></i>Update about Payyed fees<span class="text-1 text-muted d-block">18 Feb 2020</span></a></li>
-                            <li class="dropdown-divider mx-n3"></li>
-                            <li><a class="dropdown-item text-center text-primary px-0" href="notifications.html">See all Notifications</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown profile ml-2"> <a class="px-0 dropdown-toggle" href="javascript:void(0);"><img class="rounded-circle" src="/{{$basic->theme}}/images/profile-thumb-sm.jpg" alt=""></a>
+                    <li class="dropdown profile ml-2">
+                        <a class="dropdown-toggle" href="javascript:void(0);">
+                            @if(file_exists(auth()->user()->image))
+                                <img class="rounded-circle" src="{{url(auth()->user()->image)}}" width="40px" height="40px" alt="{{ auth()->user()->firstname }} {{ auth()->user()->lastname }}">
+                            @else
+                                <img class="rounded-circle" src="{{url('assets/images/profile.png')}}" width="40px" height="40px" alt="{{ auth()->user()->firstname }} {{ auth()->user()->lastname }}">
+                            @endif
+                        </a>
                         <ul class="dropdown-menu">
                             <li class="text-center text-3 py-2">Hi, {{ auth()->user()->firstname }} {{ auth()->user()->lastname }}</li>
                             <li class="dropdown-divider mx-n3"></li>
                             <li><a class="dropdown-item" href="{{ route('dashboard') }}"><i class="fas fa-home"></i>Dashboard</a> </li>
-                            <li><a class="dropdown-item" href="settings-profile.html"><i class="fas fa-user"></i>My Profile</a></li>
-                            <li><a class="dropdown-item" href="settings-Security-2.html"><i class="fas fa-shield-alt"></i>Security</a></li>
-                            <li><a class="dropdown-item" href="settings-payment-methods.html"><i class="fas fa-credit-card"></i>Payment Methods</a></li>
-                            <li><a class="dropdown-item" href="settings-notifications.html"><i class="fas fa-bell"></i>Notifications</a></li>
+                            <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="fas fa-user"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('account-settings') }}"><i class="fas fa-shield-alt"></i>Security</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);"><i class="fas fa-users"></i>Referral</a></li>
                             <li class="dropdown-divider mx-n3"></li>
-                            <li><a class="dropdown-item" href="help.html"><i class="fas fa-life-ring"></i>Need Help?</a></li>
+                            <li><a class="dropdown-item" href="{{ route('help') }}"><i class="fas fa-life-ring"></i>Need Help?</a></li>
                             <li><a class="dropdown-item" href="{{ route('logout') }}"  onclick="event.preventDefault(); document.getElementById('logout-form').requestSubmit();"><i class="fas fa-sign-out-alt"></i>Sign Out</a></li>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">{{ csrf_field() }}</form>
                         </ul>
@@ -210,20 +204,20 @@
       <div class="row">
         <div class="col-lg d-lg-flex align-items-center">
           <ul class="nav justify-content-center justify-content-lg-start text-3">
-            <li class="nav-item"> <a class="nav-link active" href="index.html#">About Us</a></li>
-            <li class="nav-item"> <a class="nav-link" href="index.html#">Support</a></li>
-            <li class="nav-item"> <a class="nav-link" href="index.html#">Help</a></li>
-            <li class="nav-item"> <a class="nav-link" href="index.html#">Careers</a></li>
-            <li class="nav-item"> <a class="nav-link" href="index.html#">Affiliate</a></li>
-            <li class="nav-item"> <a class="nav-link" href="index.html#">Fees</a></li>
+            <li class="nav-item"> <a class="nav-link active" href="{{route('about')}}">About Us</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{{route('help')}}">Support</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{{route('help')}}">Help</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{{route('contact')}}">Contact Us</a></li>
           </ul>
         </div>
         <div class="col-lg d-lg-flex justify-content-lg-end mt-3 mt-lg-0">
           <ul class="social-icons justify-content-center">
-            <li class="social-icons-facebook"><a data-toggle="tooltip" href="http://www.facebook.com/" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a></li>
-            <li class="social-icons-twitter"><a data-toggle="tooltip" href="http://www.twitter.com/" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a></li>
-            <li class="social-icons-google"><a data-toggle="tooltip" href="http://www.google.com/" target="_blank" title="Google"><i class="fab fa-google"></i></a></li>
-            <li class="social-icons-youtube"><a data-toggle="tooltip" href="http://www.youtube.com/" target="_blank" title="Youtube"><i class="fab fa-youtube"></i></a></li>
+            <li class="social-icons-facebook"><a data-toggle="tooltip" href="{{$basic->facebook}}" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a></li>
+            <li class="social-icons-twitter"><a data-toggle="tooltip" href="{{$basic->twitter}}" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a></li>
+            <li class="social-icons-linkedin"><a data-toggle="tooltip" href="{{$basic->telegram}}" target="_blank" title="Telegram"><i class="fab fa-telegram"></i></a></li>
+            <li class="social-icons-linkedin"><a data-toggle="tooltip" href="{{$basic->linkedin}}" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+            <li class="social-icons-youtube"><a data-toggle="tooltip" href="{{$basic->youtube}}" target="_blank" title="Youtube"><i class="fab fa-youtube"></i></a></li>
+            <li class="social-icons-youtube"><a data-toggle="tooltip" href="{{$basic->instagram}}" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a></li>
           </ul>
         </div>
       </div>

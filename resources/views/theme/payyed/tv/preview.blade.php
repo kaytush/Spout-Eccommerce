@@ -72,7 +72,7 @@
                                         <p class="col-sm-7 text-3">{{$provider}}</p>
                                     </div>
                                     <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Mobile Number:</p>
+                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Decoder Number:</p>
                                         <p class="col-sm-7 text-3">{{$number}}</p>
                                     </div>
                                     <div class="form-row align-items-center">

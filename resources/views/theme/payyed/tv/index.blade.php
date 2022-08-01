@@ -70,7 +70,7 @@
                                         <select id="provider" onchange="chooseType(this.value)" data-style="custom-select bg-transparent border-0" data-container="body" data-live-search="true" name="provider" class="selectpicker form-control bg-transparent" required>
                                             <optgroup label="Popular Currency">
                                                 @foreach ($lists as $data)
-                                                    <option data-icon="isp-provider isp-provider-{{Str::lower($data->provider)}} mr-1" data-subtext="{{$data->provider}}" value="{{$data->provider}}">{{$data->provider}}</option>
+                                                    <option data-icon="isp-provider isp-provider-{{Str::lower($data->provider)}} mr-1" data-subtext="{{$data->provider}}" value="{{$data->provider}}" data-c_cent="{{$data->c_cent}}" data-api_cent="{{$data->api_cent}}">{{$data->provider}}</option>
                                                 @endforeach
                                             </optgroup>
                                         </select>
@@ -81,7 +81,7 @@
                                     <select class="custom-select" id="code" name="code" onchange="calculate();">
                                         <option value="">Select Bouquet</option>
                                         @foreach ($dstv as $data)
-                                            <option value="{{$data->id}}">{{$data->name}}</option>
+                                            <option value="{{$data->id}}" data-amount="{{$data->amount}}">{{$data->name}} ({{$basic->currency_sym.number_format($data->amount,$basic->decimal)}})</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -99,6 +99,7 @@
                                     Transaction fee <span class="float-right d-flex align-items-center"><span class="bg-info text-1 text-white font-weight-500 rounded d-inline-block px-2 line-height-4 ml-2">Free</span></span>
                                 </p>
                                 <hr />
+                                <input type="hidden" id="acc_name" name="acc_name" />
                                 <p class="text-4 font-weight-500">You'll pay <span class="float-right" id="total">{{$basic->currency_sym.number_format(0,$basic->decimal)}}</span></p>
                                 <button id="show" class="btn btn-primary btn-block" onclick="this.form.requestSubmit(); mySubmitFunction();">Continue</button>
                             </form>
@@ -113,17 +114,11 @@
         <script>
             function calculate() {
                 var code = $("#code option:selected").val();
-                console.log(code);
-                var c_cent = "{{App\Models\InternetData::where('id',232)->first()->c_cent}}";
-                console.log("c cent: "+c_cent);
-                var api_cent = "{{App\Models\InternetData::where('id',232)->first()->api_cent}}";
-                var amount = "{{App\Models\InternetData::where('id',232)->first()->amount}}";
-                console.log("api cent: "+api_cent);
+                var c_cent = $("#provider option:selected").attr('data-c_cent');
+                var api_cent = $("#provider option:selected").attr('data-api_cent');
+                var amount = $("#code option:selected").attr('data-amount');
                 var level="{{auth()->user()->level}}";
-                console.log("Level: "+level);
                 var curr = '{{$basic->currency_sym}}';
-                console.log("Currency: "+curr);
-                console.log("stage 1");
 
                 if (level == 0) {
                     if (c_cent > 0) {
@@ -139,9 +134,8 @@
                         var discount = 0;
                     }
                 }
-                console.log("stage 2");
 
-                var total = 1000 - discount;
+                var total = amount - discount;
 
                 document.getElementById("discount").innerHTML = '{{$basic->currency_sym}}'+discount.toLocaleString("en-US");
                 document.getElementById("total").innerHTML = '{{$basic->currency_sym}}'+total.toLocaleString("en-US");
@@ -177,6 +171,7 @@
                 for (let i = 0; i < cars.length; i++) {
                     if(cars[i].tvp_name == id) {
                         let newOption = new Option(cars[i].name +' (<?php echo $gnl->currency_sym; ?>' + cars[i].amount +')', cars[i].id);
+                        newOption.setAttribute('data-amount',cars[i].amount);
                         selectBox.add(newOption, undefined);
                     }
                 }
@@ -200,6 +195,7 @@
                                 var jRes=JSON.parse(this.responseText);
                                 console.log(jRes);
                                 if(jRes.success){
+                                    $("#acc_name").val(jRes.data.Customer_Name);
                                     document.getElementById("decodername").innerHTML = jRes.data.Customer_Name;
                                     document.getElementById("show").innerHTML = "Continue";
                                     document.getElementById("show").disabled = false;

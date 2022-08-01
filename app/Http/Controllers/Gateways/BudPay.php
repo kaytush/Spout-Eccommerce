@@ -35,7 +35,7 @@ class BudPay extends Controller
         $response = curl_exec($curl);
 
         curl_close($curl);
-        // Log::info($response);
+        // Log::info("bank List Fetch Response ".$response);
 
         $res = json_decode($response, true);
 

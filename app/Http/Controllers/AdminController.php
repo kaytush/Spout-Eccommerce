@@ -5,22 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\GeneralSettings;
 use App\Models\Admin;
 use App\Models\AdminLogin;
-use App\Http\Requests;
-use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\UserLogin;
-use App\Models\StaffLogin;
-use App\Models\Subplan;
-use App\Models\Gateway;
-use App\Models\Team;
 use App\Models\Counter;
-use App\Models\Service;
-use App\Models\Partner;
-use App\Models\AboutUs;
 use App\Models\Faq;
-use App\Models\Testimonial;
 use App\Models\Transaction;
-use App\Models\BillsHistory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Auth;
@@ -44,79 +33,24 @@ class AdminController extends Controller
         $month = date('M');
         $day = date('d');
 
-        //Top Subscribed Plans
-        $icount=0;
-        $maxcount=0;
-        $plan_names=[];
-        $counts=[];
-                $plans = Subplan::all();
-                foreach ($plans as $key => $data) {
-                    # count now...
-                    $icount= Invoice::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->where('plan_id', $data->id)->whereStatus(1)->count();
-
-        array_push($counts, $icount);
-
-        array_push($plan_names, $data->name );
-
-        }
-        $data['sub_counts']=$counts;
-        $data['sub_names']=$plan_names;
-
-        //For Invoice Records
-        $data['inv_month'] = Invoice::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->sum('amount');
-        $data['inv_year'] = Invoice::whereYear('created_at', Carbon::now()->year)->sum('amount');
-        $data['inv_week'] = Invoice::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('amount');
-        $data['inv_today'] = Invoice::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->whereDay('created_at', Carbon::now()->day)->sum('amount');
-
-        //For Subscription Records
-        $data['sub_month'] = Invoice::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->where('plan_id', !NULL)->sum('amount');
-        $data['sub_year'] = Invoice::whereYear('created_at', Carbon::now()->year)->where('plan_id', !NULL)->sum('amount');
-        $data['sub_week'] = Invoice::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->where('plan_id', !NULL)->sum('amount');
-        $data['sub_today'] = Invoice::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->whereDay('created_at', Carbon::now()->day)->where('plan_id', !NULL)->sum('amount');
-
-        //For Order Records
-        $data['ord_month'] = Order::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
-        $data['ord_year'] = Order::whereYear('created_at', Carbon::now()->year)->count();
-        $data['ord_week'] = Order::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count();
-        $data['ord_today'] = Order::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->whereDay('created_at', Carbon::now()->day)->count();
-
-        // Paid Invoice, Subscription & Order current month
-        $data['p_inv_month'] = Invoice::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->whereStatus(1)->sum('amount');
-        $data['p_sub_month'] = Invoice::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->where('plan_id', !NULL)->whereStatus(1)->sum('amount');
-        $data['p_ord_month'] = Order::whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->whereStatus(1)->count();
-
-        // Paid Invoice, Subscription & Order current week
-        $data['p_inv_week'] = Invoice::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->whereStatus(1)->sum('amount');
-        $data['p_sub_week'] = Invoice::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->where('plan_id', !NULL)->whereStatus(1)->sum('amount');
-        $data['p_ord_week'] = Order::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->whereStatus(1)->count();
-
-        // Service Order Records
-        $data['service_pending'] = Order::where(['status' => 1, 'staff_id' => 0])->count();
-        $data['service_inprogress'] = Order::where(['status' => 1])->where('staff_id','>', 0)->where('end','>', Carbon::now())->count();
-        $data['service_completed'] = Order::where(['status' => 1])->where('staff_id','>', 0)->where('end','<', Carbon::now())->where('task', '>', 0)->count();
-
-        //Recent Activities
-        $data['recent_user_logins'] = UserLogin::latest()->take(5)->get();
-        $data['transactions'] = Transaction::latest()->take(5)->get();
-
         //Total Bills
-        $data['airtime_sum_amount'] = BillsHistory::where(['service_type' => "airtime", 'refunded' => 0])->sum('amount');
-        $data['internet_sum_amount'] = BillsHistory::where(['service_type' => "internet", 'refunded' => 0])->sum('amount');
-        $data['tv_sum_amount'] = BillsHistory::where(['service_type' => "tv", 'refunded' => 0])->sum('amount');
-        $data['electricity_sum_amount'] = BillsHistory::where(['service_type' => "electricity", 'refunded' => 0])->sum('amount');
-        $data['betting_sum_amount'] = BillsHistory::where(['service_type' => "betting", 'refunded' => 0])->sum('amount');
+        $data['airtime_sum_amount'] = Transaction::where(['service_type' => "airtime", 'refunded' => 0])->sum('amount');
+        $data['internet_sum_amount'] = Transaction::where(['service_type' => "internet", 'refunded' => 0])->sum('amount');
+        $data['tv_sum_amount'] = Transaction::where(['service_type' => "tv", 'refunded' => 0])->sum('amount');
+        $data['electricity_sum_amount'] = Transaction::where(['service_type' => "electricity", 'refunded' => 0])->sum('amount');
+        $data['betting_sum_amount'] = Transaction::where(['service_type' => "betting", 'refunded' => 0])->sum('amount');
 
-        $data['airtime_sum_discount'] = BillsHistory::where(['service_type' => "airtime", 'refunded' => 0])->sum('discount');
-        $data['internet_sum_discount'] = BillsHistory::where(['service_type' => "internet", 'refunded' => 0])->sum('discount');
-        $data['tv_sum_discount'] = BillsHistory::where(['service_type' => "tv", 'refunded' => 0])->sum('discount');
-        $data['electricity_sum_discount'] = BillsHistory::where(['service_type' => "electricity", 'refunded' => 0])->sum('discount');
-        $data['betting_sum_discount'] = BillsHistory::where(['service_type' => "betting", 'refunded' => 0])->sum('discount');
+        $data['airtime_sum_discount'] = Transaction::where(['service_type' => "airtime", 'refunded' => 0])->sum('discount');
+        $data['internet_sum_discount'] = Transaction::where(['service_type' => "internet", 'refunded' => 0])->sum('discount');
+        $data['tv_sum_discount'] = Transaction::where(['service_type' => "tv", 'refunded' => 0])->sum('discount');
+        $data['electricity_sum_discount'] = Transaction::where(['service_type' => "electricity", 'refunded' => 0])->sum('discount');
+        $data['betting_sum_discount'] = Transaction::where(['service_type' => "betting", 'refunded' => 0])->sum('discount');
 
-        $data['airtime_t_count'] = BillsHistory::where(['service_type' => "airtime", 'refunded' => 0])->count();
-        $data['internet_t_count'] = BillsHistory::where(['service_type' => "internet", 'refunded' => 0])->count();
-        $data['tv_t_count'] = BillsHistory::where(['service_type' => "tv", 'refunded' => 0])->count();
-        $data['electricity_t_count'] = BillsHistory::where(['service_type' => "electricity", 'refunded' => 0])->count();
-        $data['betting_t_count'] = BillsHistory::where(['service_type' => "betting", 'refunded' => 0])->count();
+        $data['airtime_t_count'] = Transaction::where(['service_type' => "airtime", 'refunded' => 0])->count();
+        $data['internet_t_count'] = Transaction::where(['service_type' => "internet", 'refunded' => 0])->count();
+        $data['tv_t_count'] = Transaction::where(['service_type' => "tv", 'refunded' => 0])->count();
+        $data['electricity_t_count'] = Transaction::where(['service_type' => "electricity", 'refunded' => 0])->count();
+        $data['betting_t_count'] = Transaction::where(['service_type' => "betting", 'refunded' => 0])->count();
 
         //Top Subscribed Plans
         // $data['plans'] = Subplan::all();

@@ -12,6 +12,7 @@ use App\Models\Transfer;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 use Illuminate\Http\Request;
 use Session;
@@ -265,14 +266,19 @@ class UserController extends Controller
     //Wallet Transfer
     public function fundTransfer(){
         $data['page_title'] = "Fund Transfer";
-        $call = new BudPay();
-        $res = $call->bankList();
+        if(auth()->user()->bvn_status == 1){
+            $call = new BudPay();
+            $res = $call->bankList();
 
-        if($res['success'] == true){
-            $data['list'] = $res['data'];
+            if(isset($res['success']) && $res['success'] == true){
+                $data['list'] = $res['data'];
+            }else{
+                $data['list'] = [];
+            }
         }else{
-            $data['list'] = ['data'=>['bank_name'=>"",'bank_code'=>""]];
+            $data['list'] = [];
         }
+
         return view('theme.'.$this->theme.'.transfer.index', $data);
     }
 
@@ -592,19 +598,154 @@ class UserController extends Controller
         return view('theme.'.$this->theme.'.transfer.success', $data);
     }
 
-    // Profile Settings
-    public function profileSettings(){
-        $data['general'] = GeneralSettings::first();
-        return view('profile-settings', $data);
+    public function claimBonus(){
+        $user = User::findorfail(auth()->user()->id);
+        if(auth()->user()->earning < 1){
+            return back()->with(['error'=>'No bonus to move']);
+        }
+        if(auth()->user()->earning == 0){
+            return back()->with(['error'=>'No bonus to move']);
+        }
+        Log::info("Move Earning balance to main wallet balance for user ID: ".auth()->user()->id." - Email: ".auth()->user()->email." - Username: ".auth()->user()->username." - Current Balance: ".auth()->user()->balance." - Earning moved: ".auth()->user()->earning);
+
+        $gnl = GeneralSettings::first();
+        $ref = Carbon::now()->format('YmdHi') . rand();
+        $trx = $gnl->api_trans_prefix.$ref;
+        //log transaction history
+        Transaction::create([
+            'user_id' => auth()->user()->id,
+            'title' => 'Earning Claimed',
+            'service_type' => "balance",
+            'icon' => "balance",
+            'provider' => "Earning Wallet",
+            'recipient' => "Balance Wallet",
+            'description' => $gnl->currency_sym.auth()->user()->earning.' Earning balance Transfered to Main Balance',
+            'amount' => auth()->user()->earning,
+            'discount' => 0,
+            'fee' => 0,
+            'total' => auth()->user()->earning,
+            'init_bal' => auth()->user()->balance,
+            'new_bal' => auth()->user()->balance + auth()->user()->earning,
+            'wallet' => "balance",
+            'reference' => NULL,
+            'trx' => $trx,
+            'channel' => "WEBSITE",
+            'type' => 1,
+            'status' => "successful",
+            'errorMsg' => NULL,
+
+        ]);
+        $user->balance += $user->earning;
+        $user->earning = 0;
+        $user->save();
+        return back()->with(['success'=>'Bonus Moved to Balance Successfully']);
     }
 
-    // Profile Settings Update
-    public function profileSettingsUpdate(Request $request){
+    // Profile Settings
+    public function profile(){
+        $data['page_title'] = "Profile";
+        $call = new BudPay();
+        $res = $call->bankList();
+
+        if(isset($res['success']) && $res['success'] == true){
+            $data['list'] = $res['data'];
+        }else{
+            $data['list'] = [];
+        }
+        return view('theme.'.$this->theme.'.account.profile', $data);
+    }
+
+    // Profile Update
+    public function profileUpdate(Request $request){
         $user = User::find(Auth::user()->id);
-        $user->name = $request->name;
-        $user->nft_address = $request->nft_address;
+        $user->firstname = $request->firstname;
+        $user->lastname = $request->lastname;
+        $user->address = $request->address;
         $user->save();
-        return back()->with(["info"=>"Profile Settings successfully","success"=>"NFT Receiving Wallet Updated successfully"]);
+        return back()->with(["success"=>"Profile Updated successfully"]);
+    }
+
+    public function verifyBvn(Request $request){
+        $request->validate([
+            'bank' => 'required|string',
+            'acc_name' => 'required|string',
+            'acc_no' => 'required|numeric',
+            'bvn' => 'required|numeric',
+        //
+        ], [
+            'bank.required' => 'Select your Bank',
+            'acc_no.required' => 'Account Number Required',
+            'acc_no.numeric' => 'Account Number can not include letters',
+            'bvn.required' => 'BVN Number Required',
+            'bvn.numeric' => 'BVN can not include letters',
+        ]);
+
+        $bank = json_decode($request->bank,TRUE);
+
+        $gnl = GeneralSettings::first();
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => env('PAYSTACK_URL') . "customer/".auth()->user()->pk_customer_code."/identification",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => '{"country": "NG","type": "bank_account","account_number": "' . $request->acc_no . '","bvn": "' . $request->bvn . '","bank_code": "' . $bank['id'] . '","first_name": "' . auth()->user()->firstname . '","last_name": "' . auth()->user()->lastname . '"}',
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: Bearer ' . env('PAYSTACK_SECRET_KEY'),
+                'Content-Type: application/json'
+            ),
+        ));
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        $res = json_decode($response, true);
+
+        if ($res['status'] == false){
+            return back()->with("error", $res['message']);
+        }
+
+        if ($res['status'] == true){
+            $pkc = User::findOrFail(auth()->user()->id);
+            $pkc->acc_details = '{"bank_code":"'.$bank['id'].'","bank_name":"'.$bank['name'].'","account_number":"'.$request->acc_no.'"}';
+            $pkc->bvn = $request->bvn;
+            $pkc->bvn_status = 2;
+            $pkc->save();
+            return back()->with("success", $res['message']);
+        }
+
+        return back()->with("error", "Unable to process your Account Match Verification. Kindly check if your account number, bvn or ".$gnl->sitename." account name match with the account and bvn provided");
+    }
+
+    public function submitPassword(Request $request)
+    {
+        $this->validate($request, [
+            'current_password' => 'required',
+            'password' => 'required|min:5|confirmed'
+        ]);
+
+        $current_password = $request->current_password;
+        $new_password = $request->password;
+        if (Hash::check($current_password, auth()->user()->password)) {
+            $request->user()->fill(['password' => Hash::make($new_password), 'pass_changed' => Carbon::now()])->save();
+
+            return back()->with("success", "Password Changes Successfully.");
+        } else {
+            return back()->with("alert", "Current Password Not Match");
+        }
+    }
+
+    public function accountSettings(){
+        $data['page_title'] = "Account Settings";
+        return view('theme.'.$this->theme.'.account.settings', $data);
     }
 
     // Referral

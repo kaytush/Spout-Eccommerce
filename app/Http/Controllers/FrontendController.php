@@ -20,4 +20,19 @@ class FrontendController extends Controller
         $data['page_title'] = "Welcome Back";
         return view('theme.'.$this->theme.'.frontend.index', $data);
     }
+
+    public function about(){
+        $data['page_title'] = "About Us";
+        return view('theme.'.$this->theme.'.frontend.about', $data);
+    }
+
+    public function help(){
+        $data['page_title'] = "Help";
+        return view('theme.'.$this->theme.'.frontend.help', $data);
+    }
+
+    public function contact(){
+        $data['page_title'] = "Contact Us";
+        return view('theme.'.$this->theme.'.frontend.contact', $data);
+    }
 }
