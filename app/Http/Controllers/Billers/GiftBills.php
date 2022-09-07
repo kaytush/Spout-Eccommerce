@@ -119,7 +119,7 @@ class GiftBills extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-          CURLOPT_URL => env('GIFTBILLS_URL').'cable/tv',
+          CURLOPT_URL => env('GIFTBILLS_URL').'tv/pay',
           CURLOPT_RETURNTRANSFER => true,
           CURLOPT_ENCODING => '',
           CURLOPT_MAXREDIRS => 10,
