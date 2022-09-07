@@ -40,7 +40,7 @@
                     <div class="col-md-9 col-lg-7 col-xl-6 mx-auto">
                         <div class="bg-white shadow-sm rounded p-3 pt-sm-4 pb-sm-5 px-sm-5 mb-4">
                             <div class="text-center">
-                                <img style="border-radius: 20px" src="{{url($network->providerLogoUrl)}}" width="80px" height="80px" alt="avatar">
+                                <img style="border-radius: 20px" src="{{url($bet->providerLogoUrl)}}" width="80px" height="80px" alt="avatar">
                             </div>
                             <hr class="mx-n3 mx-sm-n5 mb-4" />
                             <!-- Deposit Money Confirm
@@ -59,12 +59,12 @@
                                     </div>
                                 </div>
                             @endif
-                            <form id="form-send-money" action="{{route('buy-internet')}}" method="POST">
+                            <form id="form-send-money" action="{{route('buy-betting')}}" method="POST">
                                 <div class="form-group">
                                     @csrf
                                     <input type="hidden" name="provider" value="{{$provider}}">
                                     <input type="hidden" name="number" value="{{$number}}">
-                                    <input type="hidden" name="code" value="{{$code}}">
+                                    <input type="hidden" name="amount" value="{{$amount}}">
                                 </div>
                                 <div class="alert alert-info rounded shadow-sm py-3 px-4 px-sm-2 mb-5">
                                     <div class="form-row align-items-center">
@@ -72,12 +72,20 @@
                                         <p class="col-sm-7 text-3">{{$provider}}</p>
                                     </div>
                                     <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Mobile Number:</p>
+                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">UserID/CustomerID:</p>
                                         <p class="col-sm-7 text-3">{{$number}}</p>
                                     </div>
                                     <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Data Plan:</p>
-                                        <p class="col-sm-7 text-3">{{$plan->name}}</p>
+                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Firstname:</p>
+                                        <p class="col-sm-7 text-3">{{$firstName}}</p>
+                                    </div>
+                                    <div class="form-row align-items-center">
+                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Lastname:</p>
+                                        <p class="col-sm-7 text-3">{{$lastName}}</p>
+                                    </div>
+                                    <div class="form-row align-items-center">
+                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Username:</p>
+                                        <p class="col-sm-7 text-3">{{$userName}}</p>
                                     </div>
                                     {{-- <div class="form-row align-items-center">
                                         <p class="col-sm-5 opacity-7 text-sm-right mb-0">Wallet Balance:</p>

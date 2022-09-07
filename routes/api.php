@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Web\GiftBillsHookController;
 use App\Http\Controllers\Api\Web\FlutterwaveHookController;
 use App\Http\Controllers\Api\Web\BudPayHookController;
 
@@ -19,6 +20,9 @@ use App\Http\Controllers\Api\Web\BudPayHookController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+//GiftBills Webhook (All webhooks from giftbills)
+Route::post('/giftbills/webhooks', [GiftBillsHookController::class, 'GiftBillsWebhooks']);
 
 //Budpay Webhook (All webhooks from budpay)
 Route::post('/budpay/webhooks', [BudPayHookController::class, 'budpayWebhooks']);

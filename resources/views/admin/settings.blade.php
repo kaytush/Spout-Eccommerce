@@ -21,8 +21,8 @@
                                             <a href="#" class="btn btn-icon btn-trigger toggle-expand mr-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
                                             <div class="toggle-expand-content" data-content="pageMenu">
                                                 <ul class="nk-block-tools g-3">
-                                                    <li class="nk-block-tools-opt"><a href="{{ route('services') }}" class="btn btn-white btn-dim btn-outline-light"><em class="d-none d-sm-inline icon ni ni-filter-alt"></em><span>Subscrition</span><em class="dd-indc icon ni ni-chevron-right"></em></a></li>
-                                                    <li class="nk-block-tools-opt"><a href="{{ route('services') }}" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Services</span></a></li>
+                                                    <li class="nk-block-tools-opt"><a href="{{ route('deposit-history') }}" class="btn btn-white btn-dim btn-outline-light"><em class="d-none d-sm-inline icon ni ni-filter-alt"></em><span>Deposits</span><em class="dd-indc icon ni ni-chevron-right"></em></a></li>
+                                                    <li class="nk-block-tools-opt"><a href="{{ route('transaction-history') }}" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Transactions</span></a></li>
                                                 </ul>
                                             </div>
                                         </div><!-- .toggle-wrap -->
@@ -89,7 +89,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-12">
+                                                <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label class="form-label" for="address">Office Address</label>
                                                         <div class="form-control-wrap">
@@ -98,21 +98,12 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-12">
+                                                <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label class="form-label" for="address2">Office Address 2</label>
+                                                        <label class="form-label" for="api_trans_prefix">API Transaction Prefix</label>
                                                         <div class="form-control-wrap">
-                                                            <input type="text" class="form-control" id="address2" name="address2" value="{{$general->address2}}">
-                                                            <code class="code-tag">System Office Address 2</code>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-12">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="address3">Office Address 3</label>
-                                                        <div class="form-control-wrap">
-                                                            <input type="text" class="form-control" id="address3" name="address3" value="{{$general->address3}}">
-                                                            <code class="code-tag">System Office Address 3</code>
+                                                            <input type="text" class="form-control" id="api_trans_prefix" name="api_trans_prefix" value="{{$general->api_trans_prefix}}" required>
+                                                            <code class="code-tag">System API Transaction Prefix</code>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -131,6 +122,24 @@
                                                         <div class="form-control-wrap">
                                                             <input type="text" class="form-control" id="description" name="description" value="{{$general->description}}" required>
                                                             <code class="code-tag">Enter the website description</code>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label" for="vacc_fee">Virtual Account Fee</label>
+                                                        <div class="form-control-wrap">
+                                                            <input type="number" class="form-control" id="vacc_fee" name="vacc_fee" value="{{$general->vacc_fee}}" required>
+                                                            <code class="code-tag">Amount to be charged on all Virual Account Bank Transfer Deposit</code>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label" for="transfer_fee">Transfer Fee</label>
+                                                        <div class="form-control-wrap">
+                                                            <input type="number" class="form-control" id="transfer_fee" name="transfer_fee" value="{{$general->transfer_fee}}" required>
+                                                            <code class="code-tag">Amount Charged on Inter-Bank Transfer</code>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -185,42 +194,6 @@
                                                         <div class="form-control-wrap">
                                                             <input type="text" class="form-control" id="youtube" name="youtube" value="{{$general->youtube}}" placeholder="https://youtube.com/cmb">
                                                             <code class="code-tag">provide the full URL to the YouTube includding http://</code>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="vat">Transaction Charge (VAT)</label>
-                                                        <div class="form-control-wrap">
-                                                            <input type="number" class="form-control" id="vat" name="vat" value="{{$general->vat}}" required>
-                                                            <code class="code-tag">Tax % on all Payments/Invoices</code>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="stampduty">Stamp Duty</label>
-                                                        <div class="form-control-wrap">
-                                                            <input type="text" class="form-control" id="stampduty" name="stampduty" value="{{$general->stampduty}}" required>
-                                                            <code class="code-tag">Fixed amount charged on manual transaction</code>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="addfee_name">Additional Charge</label>
-                                                        <div class="form-control-wrap">
-                                                            <input type="text" class="form-control" id="addfee_name" name="addfee_name" value="{{$general->addfee_name}}">
-                                                            <code class="code-tag">Name of the Additional charge amount</code>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="form-label" for="addfee_amount">Additional Charge Amount</label>
-                                                        <div class="form-control-wrap">
-                                                            <input type="text" class="form-control" id="addfee_amount" name="addfee_amount" value="{{$general->addfee_amount}}">
-                                                            <code class="code-tag">Additional charge amount on all payment. (Fixed Amount)</code>
                                                         </div>
                                                     </div>
                                                 </div>

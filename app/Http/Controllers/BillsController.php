@@ -595,7 +595,7 @@ class BillsController extends Controller
         return view('theme.'.$this->theme.'.tv.preview', $data);
     }
 
-    public function payTv(Request $request)
+    public function buyTv(Request $request)
     {
         $request->validate([
             'provider' => 'required|string',
@@ -733,6 +733,11 @@ class BillsController extends Controller
         $u->save();
             return back()->with(['error' => 'Unable to Process this Transaction at the moment, Try again later']);
         }
+    }
+
+    public function tvSuccess(){
+        $data['page_title'] = "Cable TV Subscription";
+        return view('theme.'.$this->theme.'.tv.success', $data);
     }
 
     // ELECTRICITY
@@ -998,7 +1003,7 @@ class BillsController extends Controller
     }
 
     // BETTING
-    public function bettingList(){
+    public function betting(){
         $data['page_title'] = "Betting Top-Up";
         $data['lists'] = BettingProviders::where(['status' => 1])->get();
         return view('theme.'.$this->theme.'.betting.index', $data);
@@ -1008,51 +1013,29 @@ class BillsController extends Controller
     {
         $request->validate([
             'provider' => 'required|string',
-            'customerId' => 'required',
+            'number' => 'required|max:15',
             'amount' => 'required|numeric',
         ],[
-            'customerId.required' => 'User ID required',
+            'number.required' => 'User ID required',
             'amount.numeric' => 'Amount cannot include an alphabet',
         ]);
 
-        $curl = curl_init();
+        // start account validation
+        $call = new GiftBills();
+        $new = new Request([
+            'provider' => $request->provider,
+            'number' => $request->number,
+        ]);
+        $res = $call->validateBetting($new);
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => env('OPAY_URL') . 'bills/validate',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>'{
-                "serviceType": "betting",
-                "provider": "'.$request->provider.'",
-                "customerId": "'.$request->customerId.'"
-            }',
-            CURLOPT_HTTPHEADER => array(
-                'MerchantId: ' . env('OPAY_MERCHANTID'),
-                'Authorization: Bearer ' . env('OPAY_PUBLICKEY'),
-                'Content-Type: application/json',
-            ),
-        ));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-        $response = curl_exec($curl);
-
-        curl_close($curl);
-
-        $res = json_decode($response, true);
-
-        if ($res['code'] == "00000" && $res['message'] == "SUCCESSFUL") {
+        if ($res['code'] == "00000") {
             Session::put('amount', $request->amount);
             Session::put('provider', $res['data']['provider']);
-            Session::put('customerId', $res['data']['customerId']);
+            Session::put('number', $res['data']['customerId']);
             Session::put('firstName', $res['data']['firstName']);
             Session::put('lastName', $res['data']['lastName']);
             Session::put('userName', $res['data']['userName']);
-            return redirect()->route('user.betting-preview');
+            return redirect()->route('betting-preview');
         } else {
              return back()->withErrors('UserID/customerId could not be verified');
         }
@@ -1064,28 +1047,28 @@ class BillsController extends Controller
         $data['page_title'] = "Betting Top-Up Preview";
         $data['amount'] = Session::get('amount');
         $data['provider'] = Session::get('provider');
-        $data['customerId'] = Session::get('customerId');
+        $data['number'] = Session::get('number');
         $data['firstName'] = Session::get('firstName');
         $data['lastName'] = Session::get('lastName');
         $data['userName'] = Session::get('userName');
         $data['bet'] = BettingProviders::where(['provider' => $data['provider']])->first();
-
-        return view('user.bills.betting-preview', $data);
-    }
-
-    public function bettingTopUp(Request $request)
-    {
-        $betting_status = BillsList::where(['id' => 5])->first();
-        if($betting_status->status ==0){
-            return redirect()->route('user.dashboard')->with(["alert"=>"Betting Service is not available at the moment"]);
+        if(auth()->user()->level > 0){
+            $data['discount'] = ($data['amount'] * $data['bet']->api_cent)/100;
+        }else{
+            $data['discount'] = ($data['amount'] * $data['bet']->c_cent)/100;
         }
 
+        return view('theme.'.$this->theme.'.betting.preview', $data);
+    }
+
+    public function buyBetting(Request $request)
+    {
         $request->validate([
             'provider' => 'required|string',
-            'customerId' => 'required',
+            'number' => 'required',
             'amount' => 'required|numeric',
         ],[
-            'customerId.required' => 'User ID required',
+            'number.required' => 'User ID required',
             'amount.numeric' => 'Amount cannot include an alphabet',
         ]);
 
@@ -1099,108 +1082,75 @@ class BillsController extends Controller
             return back()->withErrors('Amount more than maximum amount by the provider');
         }
 
-        if ($request->amount > auth()->user()->balance) {
-            return back()->withErrors('Insufficient balance. Kindly topup your wallet');
+        if(auth()->user()->level > 0){
+            $discount = ($prov->api_cent / 100) * $request->amount;
+            $total = $request->amount - $discount;
+        }else{
+            $discount = ($prov->c_cent / 100) * $request->amount;
+            $total = $request->amount - $discount;
         }
 
-        $trx = Carbon::now()->format('YmdHi') . rand();
-        $amount = $request->amount * 100;
-
-        $json = '{"bulkData":[{"amount":"'.$amount.'","country":"NG","currency":"NGN","customerId":"'.$request->customerId.'","provider":"'.$request->provider.'","reference":"'.$trx.'"}],"callBackUrl":"'.env('APP_URL').'/api/betting/callback","serviceType":"betting"}';
-
-        $sec_key = hash_hmac('sha512', $json, env('OPAY_SECRETKEY'));
-
-        $curl = curl_init();
-
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => env('OPAY_URL') . 'bills/bulk-bills',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>$json,
-            CURLOPT_HTTPHEADER => array(
-                'Authorization: Bearer ' . $sec_key,
-                'Content-Type: application/json',
-                'MerchantId: ' . env('OPAY_MERCHANTID')
-            ),
-        ));
-
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-        $response = curl_exec($curl);
-
-        curl_close($curl);
-
-        $res = json_decode($response, true);
-
-        // Log Betting Topup response
-        Log::info("Betting Topup Response for Username: ".auth()->user()->username." - UserID: ".auth()->user()->id." ".json_encode($res));
-
-        if ($res['code'] == '10096'){
-            return back()->with('error', 'Order failed [A.A.I.10096] Try again later');
+        if ($total > auth()->user()->balance) {
+            return back()->with(['error' => 'Insufficient balance. Kindly topup your wallet']);
         }
 
-        if ($res['code'] == '04198'){
-            return back()->with('error', 'Order already existed');
-        }
-
-        if ($res['data'][0]['status'] == 'FAIL'){
-            return back()->with('error', 'Unable to Process this Transaction at the moment, Try again later');
-        }
+        // charge user
+        $current_bal = auth()->user()->balance;
+        $u=User::find(auth()->user()->id);
+        $u->balance -= $total;
+        $u->save();
 
         $gnl = GeneralSettings::first();
+        $ref = Carbon::now()->format('YmdHi') . rand();
+        $trx = $gnl->api_trans_prefix.$ref;
+
+        // Log Incoming Betting Topup Attempt
+        Log::info("Betting Topup Order Attempt by User: [id: ".auth()->user()->id.", username: ".auth()->user()->username."] Source: WEBSITE".json_encode($request->all()));
+
+        // start processing order
+        $call = new GiftBills();
+        $new = new Request([
+            'provider' => $request->provider,
+            'amount' => $request->amount,
+            'number' => $request->number,
+            'reference' => $trx,
+        ]);
+        $res = $call->bettingTopup($new);
+        //Log response
+        Log::notice("GB Response on Betting Topup Order for User: [id: ".auth()->user()->id.", username: ".auth()->user()->username."] Trx: ".$trx." Source: WEBSITE".json_encode($res));
+
+        if ($res['success'] == false){
+            // balance auto reverse
+            $u=User::find(auth()->user()->id);
+            $u->balance = $current_bal;
+            $u->save();
+            return back()->with('error', 'Order failed. Try again later');
+        }
 
         //log transaction history
         Transaction::create([
             'user_id' => auth()->user()->id,
             'title' => $request->provider.' Betting Topup',
-            'description' => $gnl->currency_sym.$request->amount.' '.$request->provider.' Betting Topup on '.$request->customerId,
-            'service' => 'bills',
+            'service_type' => "betting",
+            'icon' => strtolower($request->provider),
+            'provider' => $request->provider,
+            'recipient' => $request->number,
+            'description' => $gnl->currency_sym.$request->amount.' '.$request->provider.' Betting Topup on '.$request->number,
             'amount' => $request->amount,
-            'type' => 0,
+            'discount' => $discount,
+            'fee' => 0,
+            'total' => $total,
+            'init_bal' => $current_bal,
+            'new_bal' => $current_bal - $total,
+            'wallet' => "balance",
+            'reference' => $res['data']['orderNo'],
             'trx' => $trx,
+            'channel' => "WEBSITE",
+            'type' => 0,
+            'status' => "successful",
+            'errorMsg' => $res['data']['errorMsg'],
+
         ]);
-
-        //activity log
-        $activity['user_id'] =  auth()->user()->id;
-        $activity['details'] =  'Betting Topup';
-        $activity['remark'] =  'order';
-        $activity['color'] =  'primary';
-        Activity::create($activity);
-
-        $u=User::find(auth()->user()->id);
-
-        //log bill history
-        $bill['user_id'] = auth()->user()->id;
-        $bill['service_type'] = "betting";
-        $bill['provider'] = $request->provider;
-        $bill['recipient'] = $request->customerId;
-        $bill['amount'] = $request->amount;
-        $bill['discount'] = 0;
-        $bill['fee'] = 0;
-        $bill['voucher'] = 0;
-        $bill['paid'] = $request->amount;
-        $bill['init_bal'] = $u->balance;
-        $bill['new_bal'] = $bill['init_bal'] - $bill['paid'];
-        $bill['trx'] = $trx;
-        $bill['ref'] = $res['data'][0]['orderNo'];
-        $bill['api_req_id'] = NULL;
-        $bill['channel'] = "WEBSITE";
-        $bill['status'] = $res['data'][0]['status'];
-        if(isset($res['data'][0]['errorMsg'])){
-            $bill['errorMsg'] = $res['data'][0]['errorMsg'];
-        }else{
-            $bill['errorMsg'] = NULL;
-        }
-        BillsHistory::create($bill);
-
-        $u->balance = $bill['new_bal'];
-        $u->save();
-
 
         $to = $u->email;
         $name = $u->firstname;
@@ -1208,419 +1158,122 @@ class BillsController extends Controller
         $message = "You have successfully Topup " . $request->customerId." on " . $request->provider." with the sum of " . $gnl->currency."". $request->amount . ". <br>Thank you for choosing " . $gnl->sitename;
         send_email($to, $name, $subject, $message);
 
-        //REFERRAL EARNING PAYOUT ON NEW SERVER ORDER
-        if(auth()->user()->referral != NULL){
-            //calculate referral earning
-            if($prov->r_cent > 0){
-                $earn = ($prov->r_cent * $request->amount)/100;
-            }else{
-                $earn = 0;
-            }
+        if(auth()->user()->level < 1){
+            //REFERRAL EARNING PAYOUT ON NEW SERVER ORDER
+            if(auth()->user()->referral != NULL){
+                //calculate referral earning
+                if($prov->r_cent > 0){
+                    $earn = ($prov->r_cent * $request->amount)/100;
+                }else{
+                    $earn = 0;
+                }
 
-            if($earn > 0){
-                //find referral
-                $ref = User::where('username', auth()->user()->referral)->first();
-                $ref->earning+=$earn;
-                $ref->save();
-                //log transaction history
-                Transaction::create([
-                    'user_id' => $ref->id,
-                    'title' => 'Referral Earning',
-                    'description' => 'Referral Earning on '.auth()->user()->firstname.' '.auth()->user()->lastname.' Betting Top Up.',
-                    'service' => 'earning',
-                    'amount' => $earn,
-                    'type' => 1,
-                    'trx' => 'REF-'.$trx,
-                ]);
-                //send email to referral
-                $to = $ref->email;
-                $name = $ref->firstname;
-                $subject = "You have just earned some Cash";
-                $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
-                send_email($to, $name, $subject, $message);
-            }
+                if($earn > 0){
+                    //find referral
+                    $ref = User::where('username', auth()->user()->referral)->first();
+                    $ref->earning+=$earn;
+                    $ref->save();
+                    //log transaction history
+                    Transaction::create([
+                        'user_id' => $ref->id,
+                        'title' => 'Referral Earning',
+                        'service_type' => "earning",
+                        'icon' => "bonus",
+                        'provider' => $request->provider,
+                        'recipient' => $request->number,
+                        'description' => 'Referral Earning on '.auth()->user()->firstname.' '.auth()->user()->lastname.' Betting Top Up.',
+                        'amount' => $earn,
+                        'discount' => 0,
+                        'fee' => 0,
+                        'total' => $earn,
+                        'init_bal' => $ref->earning,
+                        'new_bal' => $ref->earning + $earn,
+                        'wallet' => "earning",
+                        'reference' => NULL,
+                        'trx' => 'REF_'.$ref,
+                        'channel' => "WEBSITE",
+                        'type' => 1,
+                        'status' => "successful",
+                        'errorMsg' => NULL,
 
-        }
-
-        return redirect()->route('user.betting-list')->with('success', 'Betting Account Topup successfully');
-    }
-
-    //CHECK INTERNET STATUS
-    public function checkInternetStatus($orderNo, $reference){
-        $check = substr($orderNo, 0, 2);
-        $ref = substr($orderNo, strpos($orderNo, "-") + 1);
-        $vt_ref = $reference;
-        if($check == "PK"){
-            $curl = curl_init();
-
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => env('PRUDENTKONNECT_URL') . 'data/'.$ref,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'GET',
-                CURLOPT_HTTPHEADER => array(
-                    'Authorization: Token ' . env('PRUDENTKONNECT_TOKEN')
-                ),
-            ));
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-            $response = curl_exec($curl);
-
-            curl_close($curl);
-
-            $res = json_decode($response, true);
-
-            if ($res['id'] == $ref) {
-                $bill = BillsHistory::where(['ref'=>$orderNo])->first();
-                $bill->status = $res['Status'];
-                $bill->save();
-                return back()->with(["success"=>"Status Check & Updated Successfully"]);
-
-            } else {
-                return back()->withErrors('Unable to check status');
-            }
-        }elseif($check == "HW"){
-
-        }else{
-
-        }
-
-        return back()->withErrors('Not processed');
-    }
-
-    //CHECK BETTING STATUS
-    public function checkBettingStatus($orderNo, $reference){
-        $curl = curl_init();
-
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => env('OPAY_URL') . 'bills/bulk-status',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>'{"bulkStatusRequest": [{"orderNo": "'.$orderNo.'","reference": "'.$reference.'"}],"serviceType": "betting"}',
-            CURLOPT_HTTPHEADER => array(
-                'MerchantId: ' . env('OPAY_MERCHANTID'),
-                'Authorization: Bearer ' . env('OPAY_PUBLICKEY'),
-                'Content-Type: application/json',
-            ),
-        ));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-        $response = curl_exec($curl);
-
-        curl_close($curl);
-
-        $res = json_decode($response, true);
-
-        if ($res['code'] == "00000" && $res['message'] == "SUCCESSFUL") {
-            if ($res['data'][0]['orderNo'] == $orderNo && $res['data'][0]['reference'] == $reference){
-                $bill = BillsHistory::where(['trx'=>$reference, 'ref'=>$orderNo])->first();
-                $bill->status = $res['data'][0]['status'];
-                $bill->errorMsg = $res['data'][0]['errorMsg'];
-                $bill->save();
-                return back()->with(["success"=>"Status Check & Updated Successfully"]);
-            }
-
-        } else {
-             return back()->withErrors('Unable to check status');
-        }
-        return back()->withErrors('Not processed');
-    }
-
-    // cron to check all pending betting status
-    public function checkPendingBettingStatus(){
-        $bets = BillsHistory::where(['service_type'=>"betting",'status'=>"PENDING"])->get();
-
-        foreach($bets as $data){
-            $curl = curl_init();
-
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => env('OPAY_URL') . 'bills/bulk-status',
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS =>'{"bulkStatusRequest": [{"orderNo": "'.$data->ref.'","reference": "'.$data->trx.'"}],"serviceType": "betting"}',
-                CURLOPT_HTTPHEADER => array(
-                    'MerchantId: ' . env('OPAY_MERCHANTID'),
-                    'Authorization: Bearer ' . env('OPAY_PUBLICKEY'),
-                    'Content-Type: application/json',
-                ),
-            ));
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-            $response = curl_exec($curl);
-
-            curl_close($curl);
-
-            $res = json_decode($response, true);
-
-            Log::notice("Cron Job Check Response: ".json_encode($res)." - for Ref: ".$data->trx);
-
-            if ($res['code'] == "00000" && $res['message'] == "SUCCESSFUL") {
-                if ($res['data'][0]['orderNo'] == $data->ref && $res['data'][0]['reference'] == $data->trx){
-                    $bill = BillsHistory::where(['trx'=>$data->trx, 'ref'=>$data->ref])->first();
-                    $bill->status = $res['data'][0]['status'];
-                    $bill->errorMsg = $res['data'][0]['errorMsg'];
-                    $bill->save();
+                    ]);
+                    //send email to referral
+                    $to = $ref->email;
+                    $name = $ref->firstname;
+                    $subject = "You have just earned some Cash";
+                    $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
+                    send_email($to, $name, $subject, $message);
                 }
 
             }
         }
 
+        return redirect()->route('betting-success')->with(['success'=>'Betting Account Topup successfully', 'amount'=>$request->amount, 'number'=>$request->number]);
+    }
+
+
+    public function bettingSuccess(){
+        $data['page_title'] = "Betting Top-Up";
+        return view('theme.'.$this->theme.'.betting.success', $data);
     }
 
     //PAY CLIENT REFUND FOR FAILED ORDER
     public function refundClientBill($id){
-        $bill = BillsHistory::where(['id'=>$id])->first();
+        $bill = Transaction::where(['id'=>$id])->first();
 
-        if($bill->debit == "balance"){
+        if($bill->refunded == 0){
             $descrpt = 'Refund on trx '.$bill->trx.' - '.$bill->provider.' - '.$bill->recipient.' '.$bill->service_type;
             $refund = $bill->paid;
             $rate = $bill->paid;
-        }elseif($bill->debit == "cg"){
-            $descrpt = 'Refund on trx '.$bill->trx.' - '.$bill->provider.' - '.$bill->recipient.' '.$bill->service_type;
-            $refund = $bill->cg;
-            $rate = $bill->paid;
+
+            $gnl = GeneralSettings::first();
+            $trx = Carbon::now()->format('YmdHi') . rand();
+            $u = User::find($bill->user_id);;
+
+            //log transaction history
+            Transaction::create([
+                'user_id' => $bill->user_id,
+                'title' => 'Wallet Refund',
+                'service_type' => "balance",
+                'icon' => "balance",
+                'provider' => $bill->provider,
+                'recipient' => $bill->number,
+                'description' => $gnl->currency_sym.$bill->amount.' '.$bill->provider.' Betting Topup Refund on '.$bill->number,
+                'amount' => $bill->amount,
+                'discount' => 0,
+                'fee' => 0,
+                'total' => $bill->paid,
+                'init_bal' => $u->balance,
+                'new_bal' => $u->balance + $bill->paid,
+                'wallet' => "balance",
+                'reference' => NULL,
+                'trx' => $trx,
+                'channel' => "WEBSITE",
+                'type' => 1,
+                'status' => "successful",
+                'errorMsg' => NULL,
+
+            ]);
+
+            $bill->refunded = 1;
+            $bill->save();
+
+            $u->balance += $refund;
+            $u->save();
+
+            return back()->with(["success"=>"Client Refunded Successfully"]);
+        }else{
+            return back()->with(["error"=>"Client Already Refunded"]);
         }
-
-        $trx = Carbon::now()->format('YmdHi') . rand();
-
-        //log transaction history
-        Transaction::create([
-            'user_id' => $bill->user_id,
-            'title' => 'Wallet Refund',
-            'description' => $descrpt,
-            'service' => 'earning',
-            'amount' => $rate,
-            'type' => 1,
-            'trx' => $trx,
-        ]);
-
-        $bill->refunded = 1;
-        $bill->save();
-
-        $user = User::find($bill->user_id);
-
-        if($bill->debit == "balance"){
-            $user->balance += $refund;
-        }elseif($bill->debit == "cg"){
-            $user->mtn_cg += $refund;
-        }
-
-        $user->save();
-
-        return back()->with(["success"=>"Client Refunded Successfully"]);
     }
 
     //UPDATE BILL STATUS
     public function updateBillStatus($id,$status){
-        $bill = BillsHistory::where(['id'=>$id])->first();
+        $bill = Transaction::where(['id'=>$id])->first();
         $bill->status = $status;
         $bill->save();
 
         return back()->with(["success"=>"Bill Status Changed Successfully"]);
-    }
-
-    // CONVERT AIRITME
-    public function convertAirtime(){
-        $convert_airtime_status = BillsList::where(['id' => 6])->first();
-        if($convert_airtime_status->status ==0){
-            return redirect()->route('user.dashboard')->with(["alert"=>"Convert Airtime Service is not available at the moment"]);
-        }
-        $data['timenow'] = Carbon::now();
-        $data['general'] = GeneralSettings::first();
-        $data['page_title'] = "Convert Airtime";
-        $data['lists'] = ConvertAirtime::where(['status' => 1])->get();
-        return view('user.bills.convertairtime-list', $data);
-    }
-
-    public function convertAirtimeSelect($provider){
-        $convert_airtime_status = BillsList::where(['id' => 6])->first();
-        if($convert_airtime_status->status ==0){
-            return redirect()->route('user.dashboard')->with(["alert"=>"Convert Airtime Service is not available at the moment"]);
-        }
-        $data['timenow'] = Carbon::now();
-        $data['general'] = GeneralSettings::first();
-        $data['page_title'] = "Convert Airtime";
-        $data['network'] = ConvertAirtime::where(['status' => 1, 'provider' => $provider])->first();
-        return view('user.bills.convert-airtime', $data);
-    }
-
-    public function convertAirtimeValidate(Request $request)
-    {
-        $convert_airtime_status = BillsList::where(['id' => 6])->first();
-        if($convert_airtime_status->status ==0){
-            return redirect()->route('user.dashboard')->with(["alert"=>"Convert Airtime Service is not available at the moment"]);
-        }
-
-        $request->validate([
-            'provider' => 'required|string',
-            'number' => 'required|numeric',
-            'amount' => 'required|numeric',
-            'type' => 'required|string',
-        ],[
-            'number.required' => 'Mobile Number required',
-            'number.numeric' => 'Mobile Number cannot include an alphabet',
-            'amount.numeric' => 'Amount cannot include an alphabet',
-        ]);
-
-        $gnl = GeneralSettings::first();
-        $network = ConvertAirtime::where(['status' => 1, 'provider' => $request->provider])->first();
-
-        if($request->type == "wallet"){
-            if($request->amount < $network->wallet_min){
-                $min = number_format($network->wallet_min,$gnl->decimal);
-                return back()->with(['error' => 'Minimum Airtime you can convert into your wallet is '.$gnl->currency_sym.$min]);
-            }
-        }
-        if($request->type == "bank"){
-            if($request->amount < $network->bank_min){
-                $min = number_format($network->bank_min,$gnl->decimal);
-                return back()->with(['error' => 'Minimum Airtime you can convert into your bank account is '.$gnl->currency_sym.$min]);
-            }
-        }
-
-        Session::put('provider', $network->provider);
-        Session::put('fee', $network->fee);
-        Session::put('number', $request->number);
-        Session::put('amount', $request->amount);
-        Session::put('type', $request->type);
-
-        return redirect()->route('user.convert-airtime-preview');
-    }
-
-    public function convertAirtimePreview(){
-        $convert_airtime_status = BillsList::where(['id' => 6])->first();
-        if($convert_airtime_status->status ==0){
-            return redirect()->route('user.dashboard')->with(["alert"=>"Convert Airtime Service is not available at the moment"]);
-        }
-        $data['general'] = GeneralSettings::first();
-        $data['page_title'] = "Convert Airtime Preview";
-        $data['provider'] = Session::get('provider');
-        $data['fee'] = Session::get('fee');
-        $data['number'] = Session::get('number');
-        $data['amount'] = Session::get('amount');
-        $data['type'] = Session::get('type');
-        $data['convert'] = ConvertAirtime::where(['provider' => $data['provider']])->first();
-
-        return view('user.bills.convert-airtime-preview', $data);
-    }
-
-    public function convertAirtimeSubmit(Request $request)
-    {
-        $convert_airtime_status = BillsList::where(['id' => 6])->first();
-        if($convert_airtime_status->status ==0){
-            return redirect()->route('user.dashboard')->with(["alert"=>"Convert Airtime Service is not available at the moment"]);
-        }
-
-        $request->validate([
-            'provider' => 'required|string',
-            'number' => 'required|numeric',
-            'amount' => 'required|numeric',
-            'type' => 'required|string',
-        ],[
-            'number.required' => 'Mobile Number required',
-            'number.numeric' => 'Mobile Number cannot include an alphabet',
-            'amount.numeric' => 'Amount cannot include an alphabet',
-        ]);
-
-        $gnl = GeneralSettings::first();
-
-        //check for max and min amount for by the provider
-        $network = ConvertAirtime::where(['provider' => $request->provider])->first();
-
-        if($request->type == "wallet"){
-            if($request->amount < $network->wallet_min){
-                $min = number_format($network->wallet_min,$gnl->decimal);
-                return back()->with(['error' => 'Minimum Airtime you can convert into your wallet is '.$gnl->currency_sym.$min]);
-            }
-        }
-        if($request->type == "bank"){
-            if($request->amount < $network->bank_min){
-                $min = number_format($network->bank_min,$gnl->decimal);
-                return back()->with(['error' => 'Minimum Airtime you can convert into your bank account is '.$gnl->currency_sym.$min]);
-            }
-        }
-
-        $trx = Carbon::now()->format('YmdHi') . rand();
-
-        //activity log
-        $activity['user_id'] =  auth()->user()->id;
-        $activity['details'] =  'Airtime Conversion';
-        $activity['remark'] =  'order';
-        $activity['color'] =  'primary';
-        Activity::create($activity);
-
-        //fee rate
-        $rate = $network->fee / 100;
-
-        if($request->type == "wallet"){
-            $fee_amount = $rate * $request->amount;
-            $account = NULL;
-        }elseif($request->type == "bank"){
-            $fee_amount = ($rate * $request->amount) + 50;
-            $account = auth()->user()->acc_details;
-        }
-
-        //convert airtime log
-        $data['user_id'] =  auth()->user()->id;
-        $data['p_id'] = $network->id;
-        $data['provider'] = $request->provider;
-        $data['number'] = $request->number;
-        $data['type'] = $request->type;
-        $data['amount'] = $request->amount;
-        $data['fee_percent'] = $network->fee;
-        $data['fee_amount'] = $fee_amount;
-        $data['settled'] = $request->amount - $fee_amount;
-        $data['account'] = $account;
-        $data['trx'] = $trx;
-        $data['status'] = 0;
-        $dd = ConvertAirtimeLog::create($data);
-
-        //log transaction history
-        // Transaction::create([
-        //     'user_id' => auth()->user()->id,
-        //     'title' => 'Airtime Conversion',
-        //     'description' => $gnl->currency_sym.$request->amount.' '.$request->provider.' Airtime Converted from '.$request->number,
-        //     'service' => 'bills',
-        //     'amount' => $request->amount,
-        //     'type' => 1,
-        //     'trx' => $trx,
-        // ]);
-
-        $data['page_title'] = "Convert Airtime";
-        $data['id'] = $dd->id;
-        $data['number'] = $dd->number;
-        $data['amount'] = $dd->amount;
-        $data['network'] = ConvertAirtime::where(['provider' => $dd->provider])->first();
-
-        return view('user.bills.convert-details', $data);
-    }
-
-    public function convertAirtimeConfirm($id){
-        $ca = ConvertAirtimeLog::findorFail($id);
-        // $ca['status'] = 2;
-        // $ca->save();
-       return redirect()->route('user.convert-airtime')->with('success', 'Airtime Conversion Request submitted successfully. Your order is processing.');
-    }
-
-    //Bill History
-    public function billsHistory(){
-        $data['page_title'] = "Bill Payment History";
-        $data['bills'] = BillsHistory::where(['user_id' => auth()->user()->id])->latest()->paginate(20);
-        return view('user.bills.bill-history', $data);
     }
 
 }

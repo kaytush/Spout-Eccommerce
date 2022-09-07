@@ -14,7 +14,7 @@
                                     <div class="nk-block-head-content">
                                         <h3 class="nk-block-title page-title">Bill History</h3>
                                         <div class="nk-block-des text-soft">
-                                            <p>You have a total of <b>{{$count_bills}}</b> bill(s). - {{$count_gb}}GB</p>
+                                            <p>You have a total of <b>{{$count_bills}}</b> bill(s).</p>
                                         </div>
                                     </div><!-- .nk-block-head-content -->
                                     <div class="nk-block-head-content">
@@ -189,7 +189,7 @@
                                                     <div class="nk-tb-item">
                                                         <div class="nk-tb-col">
                                                             <div class="nk-tnx-type">
-                                                                @if($data->status =="SUCCESS" || $data->status =="successful" || $data->status =="delivered")
+                                                                @if($data->status =="SUCCESS" || $data->status =="SUCCESSFUL" || $data->status =="successful" || $data->status =="delivered")
                                                                     <div class="nk-tnx-type-icon bg-success-dim text-success">
                                                                         <em class="icon ni ni-arrow-up-right"></em>
                                                                     </div>
@@ -222,13 +222,13 @@
                                                         </div>
                                                         <div class="nk-tb-col text-right">
                                                             <span class="tb-amount">{{$general->currency_sym}}{{number_format($data->amount, $general->decimal)}} <span>Amount</span></span>
-                                                            <span class="tb-amount-sm">{{$general->currency_sym}}{{number_format($data->paid, $general->decimal)}} Paid</span>
+                                                            <span class="tb-amount-sm">{{$general->currency_sym}}{{number_format($data->total, $general->decimal)}} Paid</span>
                                                         </div>
                                                         <div class="nk-tb-col text-right tb-col-sm">
                                                             <span class="tb-amount">{{$general->currency_sym}}{{number_format($data->init_bal, $general->decimal)}} <span>INT</span></span>
                                                             <span class="tb-amount-sm">{{$general->currency_sym}}{{number_format($data->new_bal, $general->decimal)}} NEW</span>
                                                         </div>
-                                                        @if($data->status =="SUCCESS" || $data->status =="successful" || $data->status =="delivered")
+                                                        @if($data->status =="SUCCESS" || $data->status =="SUCCESSFUL" || $data->status =="successful" || $data->status =="delivered")
                                                             <div class="nk-tb-col nk-tb-col-status">
                                                                 <div class="dot dot-success d-md-none"></div>
                                                                 <span class="badge badge-sm badge-dim badge-outline-success d-none d-md-inline-flex">{{$data->status}}</span>
@@ -267,10 +267,10 @@
                                                                         <div class="dropdown-menu dropdown-menu-right">
                                                                             <ul class="link-list-opt">
                                                                                 @if($data->service_type == "betting")
-                                                                                    <li><a href="{{ route('check-betting-status', [$data->ref, $data->trx]) }}"><em class="icon ni ni-done"></em><span>Check Status</span></a></li>
+                                                                                    <li><a href="{{ route('check-betting-status', [$data->reference, $data->trx]) }}"><em class="icon ni ni-done"></em><span>Check Status</span></a></li>
                                                                                 @endif
                                                                                 @if($data->service_type == "internet")
-                                                                                    <li><a href="{{ route('check-internet-status', [$data->ref, $data->trx]) }}"><em class="icon ni ni-done"></em><span>Check Status</span></a></li>
+                                                                                    <li><a href="{{ route('check-internet-status', [$data->reference, $data->trx]) }}"><em class="icon ni ni-done"></em><span>Check Status</span></a></li>
                                                                                 @endif
                                                                                 {{-- <li><a href="#"><em class="icon ni ni-cross-round"></em><span>Reject</span></a></li> --}}
                                                                                 @if($data->status =="PENDING" || $data->status =="FAIL" || $data->status =="failed" || $data->status =="FAILED")
@@ -318,17 +318,11 @@
                                         <li><div class="data-details-head">Fee</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->fee, $gnl->decimal)}}</div></li><!-- li -->
                                         <li><div class="data-details-head">Discount</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->discount, $gnl->decimal)}}</div></li><!-- li -->
                                         <li><div class="data-details-head">Voucher</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->voucher, $gnl->decimal)}}</div></li><!-- li -->
-                                        <li><div class="data-details-head">Paid</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->paid, $gnl->decimal)}}</div></li><!-- li -->
+                                        <li><div class="data-details-head">Paid</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->total, $gnl->decimal)}}</div></li><!-- li -->
                                         <li><div class="data-details-head">Initial Balance</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->init_bal, $gnl->decimal)}}</div></li><!-- li -->
                                         <li><div class="data-details-head">New Balance</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->new_bal, $gnl->decimal)}}</div></li><!-- li -->
-                                        @if($data->user->level > 0)
-                                            <li><div class="data-details-head">CG Charged</div><div class="data-details-des">{{$data->cg}}GB</div></li><!-- li -->
-                                            <li><div class="data-details-head">Initial CG</div><div class="data-details-des">{{$data->init_cg}}GB</div></li><!-- li -->
-                                            <li><div class="data-details-head">New CG</div><div class="data-details-des">{{$data->new_cg}}GB</div></li><!-- li -->
-                                        @endif
-                                        <li><div class="data-details-head">Source Debit</div><div class="data-details-des">{{$data->debit}}</div></li><!-- li -->
                                         <li><div class="data-details-head">Channel</div><div class="data-details-des">{{$data->channel}}</div></li><!-- li -->
-                                        <li><div class="data-details-head">orderNo</div><div class="data-details-des">{{$data->ref}}</div></li><!-- li -->
+                                        <li><div class="data-details-head">orderNo</div><div class="data-details-des">{{$data->reference}}</div></li><!-- li -->
                                         @if($data->channel == "API")
                                             <li><div class="data-details-head">Reference</div><div class="data-details-des">{{$data->api_req_id}}</div></li><!-- li -->
                                         @endif

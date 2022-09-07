@@ -124,7 +124,7 @@
                         <ul class="dropdown-menu">
                             <li @if(Request::url() == route('tv')) class="active" @endif><a class="dropdown-item" href="{{route('tv')}}" data-turbo="false">Cable TV</a></li>
                             {{-- <li @if(Request::url() == route('electricity')) class="active" @endif><a class="dropdown-item" href="{{route('electricity')}}" data-turbo="false">Electricity</a></li> --}}
-                            {{-- <li @if(Request::url() == route('betting')) class="active" @endif><a class="dropdown-item" href="{{route('betting')}}" data-turbo="false">Betting</a></li> --}}
+                            <li @if(Request::url() == route('betting')) class="active" @endif><a class="dropdown-item" href="{{route('betting')}}" data-turbo="false">Betting</a></li>
                             {{-- <li @if(Request::url() == route('dashboard')) class="active" @endif><a class="dropdown-item" href="{{route('dashboard')}}">Convert Airtime</a></li> --}}
                             {{-- <li @if(Request::url() == route('dashboard')) class="active" @endif><a class="dropdown-item" href="{{route('dashboard')}}">Educational</a></li> --}}
                         </ul>
@@ -167,7 +167,7 @@
                             <li class="text-center text-3 py-2">Hi, {{ auth()->user()->firstname }} {{ auth()->user()->lastname }}</li>
                             <li class="dropdown-divider mx-n3"></li>
                             <li><a class="dropdown-item" href="{{ route('dashboard') }}"><i class="fas fa-home"></i>Dashboard</a> </li>
-                            <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="fas fa-user"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.profile') }}"><i class="fas fa-user"></i>My Profile</a></li>
                             <li><a class="dropdown-item" href="{{ route('account-settings') }}"><i class="fas fa-shield-alt"></i>Security</a></li>
                             <li><a class="dropdown-item" href="javascript:void(0);"><i class="fas fa-users"></i>Referral</a></li>
                             <li class="dropdown-divider mx-n3"></li>
@@ -262,6 +262,7 @@
 </div>
 <!-- Video Modal end -->
 
+    {!! $basic->livechat !!}
     @yield('script')
     @yield('js')
     <script>

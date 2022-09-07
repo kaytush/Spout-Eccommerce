@@ -16,7 +16,7 @@
               </div>
             </div>
             <p class="text-3 font-weight-500 mb-2">Hello, {{ auth()->user()->firstname }} {{ auth()->user()->lastname }}</p>
-            @if(Request::url() != route('profile')) <p class="mb-2"><a href="{{ route('profile') }}" class="text-5 text-light" data-toggle="tooltip" title="Edit Profile"><i class="fas fa-edit"></i></a></p> @else <p><br></p> @endif
+            @if(Request::url() != route('user.profile')) <p class="mb-2"><a href="{{ route('user.profile') }}" class="text-5 text-light" data-toggle="tooltip" title="Edit Profile"><i class="fas fa-edit"></i></a></p> @else <p><br></p> @endif
           </div>
           <!-- Profile Details End -->
 

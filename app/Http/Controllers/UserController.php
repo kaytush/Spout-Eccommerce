@@ -95,7 +95,7 @@ class UserController extends Controller
     // Transaction Logs
     public function transactions(){
         $data['page_title'] = "Transactions";
-        $data['trxs'] = Transaction::where('user_id',Auth::user()->id)->paginate(20);
+        $data['trxs'] = Transaction::where('user_id',Auth::user()->id)->latest()->paginate(20);
         return view('theme.'.$this->theme.'.logs.transactions', $data);
     }
 

@@ -77,7 +77,7 @@
                                     <li><div class="data-details-head">Amount</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->amount, $gnl->decimal)}}</div></li><!-- li -->
                                     <li><div class="data-details-head">Fee</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->fee, $gnl->decimal)}}</div></li><!-- li -->
                                     <li><div class="data-details-head">Total</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->total_amount, $gnl->decimal)}}</div></li><!-- li -->
-                                    <li><div class="data-details-head">Gateway</div><div class="data-details-des">{{$data->gate->name}}</div></li><!-- li -->
+                                    <li><div class="data-details-head">Gateway</div><div class="data-details-des">{{$data->gateway}}</div></li><!-- li -->
                                     <li><div class="data-details-head">Date</div><div class="data-details-des">{!! date('d M, Y H:i A', strtotime($data->created_at)) !!}</div></li><!-- li -->
                                     @if($data->created_at != $data->updated_at)
                                         <li><div class="data-details-head">Updated At</div><div class="data-details-des">{!! date('d M, Y H:i A', strtotime($data->updated_at)) !!}</div></li><!-- li -->

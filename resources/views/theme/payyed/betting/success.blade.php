@@ -46,8 +46,8 @@
                                 <p class="text-success text-8 font-weight-500 line-height-07">Success!</p>
                                 <p class="lead">{{session('success')}}</p>
                             </div>
-                            <p class="text-3 mb-4">You've successfully purchased <span class="text-4 font-weight-500">{{session('name')}}</span> Internet Data on <span class="text-4 font-weight-500">{{session('number')}}</span>, See transaction details in <a class="btn-link" href="{{route('transactions')}}">Transaction History</a>.</p>
-                            <a href="{{route('internet')}}" data-turbo="false" class="btn btn-primary btn-block">Buy Internet Data Again</a>
+                            <p class="text-3 mb-4">You've successfully topup <span class="text-4 font-weight-500">{{$basic->currency_sym.number_format(session('amount'),$basic->decimal)}}</span> on Betting Account <span class="text-4 font-weight-500">{{session('number')}}</span>, See transaction details in <a class="btn-link" href="{{route('transactions')}}">Transaction History</a>.</p>
+                            <a href="{{route('betting')}}" data-turbo="false" class="btn btn-primary btn-block">Topup Betting Account Again</a>
                             <a class="text-3 d-inline-block btn-link mt-4" href="javascript:void(0);" onclick="window.print();"><i class="fas fa-print"></i> Print</a>
                         </div>
                         <!-- Request Money Success end -->

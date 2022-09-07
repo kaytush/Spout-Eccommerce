@@ -54,35 +54,6 @@
                                 </li><!-- .nk-menu-item -->
                                 <li class="nk-menu-item has-sub">
                                     <a href="#" class="nk-menu-link nk-menu-toggle">
-                                        <span class="nk-menu-text">Services</span>
-                                    </a>
-                                    <ul class="nk-menu-sub">
-                                        <li class="nk-menu-item">
-                                            <a href="{{ route('services') }}" class="nk-menu-link"><span class="nk-menu-text">Our Services</span></a>
-                                        </li>
-                                        <li class="nk-menu-item">
-                                            <a href="{{ route('service-cat') }}" class="nk-menu-link"><span class="nk-menu-text">Service Category</span></a>
-                                        </li>
-                                    </ul><!-- .nk-menu-sub -->
-                                </li><!-- .nk-menu-item -->
-                                <li class="nk-menu-item has-sub">
-                                    <a href="#" class="nk-menu-link nk-menu-toggle">
-                                        <span class="nk-menu-text">Orders</span>
-                                    </a>
-                                    <ul class="nk-menu-sub">
-                                        <li class="nk-menu-item">
-                                            <a href="{{route('order-requests')}}" class="nk-menu-link"><span class="nk-menu-text">Service Requests</span></a>
-                                        </li>
-                                        <li class="nk-menu-item">
-                                            <a href="{{route('orders-in-progress')}}" class="nk-menu-link"><span class="nk-menu-text">Service in Progress</span></a>
-                                        </li>
-                                        <li class="nk-menu-item">
-                                            <a href="{{route('completed-orders')}}" class="nk-menu-link"><span class="nk-menu-text">Service Completed</span></a>
-                                        </li>
-                                    </ul><!-- .nk-menu-sub -->
-                                </li><!-- .nk-menu-item -->
-                                <li class="nk-menu-item has-sub">
-                                    <a href="#" class="nk-menu-link nk-menu-toggle">
                                         <span class="nk-menu-text">Histories</span>
                                     </a>
                                     <ul class="nk-menu-sub">
@@ -96,11 +67,11 @@
                                             <a href="{{route('transaction-history')}}" class="nk-menu-link"><span class="nk-menu-text">Transaction Hisotry</span></a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="{{route('withdrawal-history')}}" class="nk-menu-link"><span class="nk-menu-text">Withdrawal Hisotry</span></a>
+                                            <a href="{{route('transfer-history')}}" class="nk-menu-link"><span class="nk-menu-text">Transfer Hisotry</span></a>
                                         </li>
-                                        <li class="nk-menu-item">
+                                        {{-- <li class="nk-menu-item">
                                             <a href="{{route('convert-airtime-history')}}" class="nk-menu-link"><span class="nk-menu-text">Convert Airtime Hisotry</span></a>
-                                        </li>
+                                        </li> --}}
                                     </ul><!-- .nk-menu-sub -->
                                 </li><!-- .nk-menu-item -->
                                 <li class="nk-menu-item has-sub">
@@ -112,9 +83,6 @@
                                             <a href="{{ route('clients') }}" class="nk-menu-link"><span class="nk-menu-text">Clients</span></a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="{{ route('staffs') }}" class="nk-menu-link"><span class="nk-menu-text">Staffs</span></a>
-                                        </li>
-                                        <li class="nk-menu-item">
                                             <a href="{{ route('manage.subscribers') }}" class="nk-menu-link"><span class="nk-menu-text">Subscribers</span></a>
                                         </li>
                                         <li class="nk-menu-item">
@@ -122,7 +90,7 @@
                                         </li>
                                     </ul><!-- .nk-menu-sub -->
                                 </li><!-- .nk-menu-item -->
-                                <li class="nk-menu-item has-sub">
+                                {{-- <li class="nk-menu-item has-sub">
                                     <a href="#" class="nk-menu-link nk-menu-toggle">
                                         <span class="nk-menu-text">Frontend</span>
                                     </a>
@@ -167,9 +135,6 @@
                                             </ul><!-- .nk-menu-sub -->
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="{{ route('services') }}" class="nk-menu-link"><span class="nk-menu-text">Services</span></a>
-                                        </li>
-                                        <li class="nk-menu-item">
                                             <a href="{{ route('teams') }}" class="nk-menu-link"><span class="nk-menu-text">Teams</span></a>
                                         </li>
                                         <li class="nk-menu-item">
@@ -204,15 +169,10 @@
                                                         <span class="nk-menu-text">New Blog Post</span>
                                                     </a>
                                                 </li><!-- .nk-menu-item -->
-                                                {{-- <li class="nk-menu-item">
-                                                    <a href="{{ route('payment-settings') }}" class="nk-menu-link">
-                                                        <span class="nk-menu-text">Blog Import</span>
-                                                    </a>
-                                                </li><!-- .nk-menu-item --> --}}
                                             </ul><!-- .nk-menu-sub -->
                                         </li>
                                     </ul><!-- .nk-menu-sub -->
-                                </li><!-- .nk-menu-item -->
+                                </li><!-- .nk-menu-item --> --}}
                                 <li class="nk-menu-item has-sub">
                                     <a href="#" class="nk-menu-link nk-menu-toggle">
                                         <span class="nk-menu-text">Settings</span>
@@ -228,21 +188,11 @@
                                                 <span class="nk-menu-text">Email Template</span>
                                             </a>
                                         </li><!-- .nk-menu-item -->
-                                        <li class="nk-menu-item">
+                                        {{-- <li class="nk-menu-item">
                                             <a href="{{ route('payment-settings') }}" class="nk-menu-link">
                                                 <span class="nk-menu-text">Payment Settings</span>
                                             </a>
-                                        </li><!-- .nk-menu-item -->
-                                        <li class="nk-menu-item">
-                                            <a href="{{ route('subplan') }}" class="nk-menu-link">
-                                                <span class="nk-menu-text">Subscription Plans</span>
-                                            </a>
-                                        </li><!-- .nk-menu-item -->
-                                        <li class="nk-menu-item">
-                                            <a href="{{ route('sms-settings') }}" class="nk-menu-link">
-                                                <span class="nk-menu-text">SMS Route Config</span>
-                                            </a>
-                                        </li><!-- .nk-menu-item -->
+                                        </li><!-- .nk-menu-item --> --}}
                                         <li class="nk-menu-item">
                                             <a href="{{ route('state') }}" class="nk-menu-link">
                                                 <span class="nk-menu-text">State Settings</span>

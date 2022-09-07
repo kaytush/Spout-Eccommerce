@@ -72,7 +72,7 @@
                                     <li><div class="data-details-head">Client Username</div><div class="data-details-des"><a href="{{ route('client.details', $data->user->id) }}">{{$data->user->username}}</a></div></li><!-- li -->
                                     <li><div class="data-details-head">Title</div><div class="data-details-des">{{$data->title}}</div></li><!-- li -->
                                     <li><div class="data-details-head">Description</div><div class="data-details-des">{{$data->description}}</div></li><!-- li -->
-                                    <li><div class="data-details-head">Service</div><div class="data-details-des">{{$data->service}}</div></li><!-- li -->
+                                    <li><div class="data-details-head">Service</div><div class="data-details-des">{{$data->service_type}}</div></li><!-- li -->
                                     <li><div class="data-details-head">Type</div><div class="data-details-des">@if($data->type == 1) <font color="green">Credit</font> @else <font color="red">Debit</font> @endif</div></li><!-- li -->
                                     <li><div class="data-details-head">Amount</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->amount, $gnl->decimal)}}</div></li><!-- li -->
                                     <li><div class="data-details-head">Trx</div><div class="data-details-des">{{$data->trx}}</div></li><!-- li -->

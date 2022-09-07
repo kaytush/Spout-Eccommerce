@@ -41,14 +41,14 @@
                                             <div class="card-inner">
                                                 <div class="card-title-group align-start mb-0">
                                                     <div class="card-title">
-                                                        <h6 class="subtitle">Total Invoice</h6>
+                                                        <h6 class="subtitle">Total Deposits</h6>
                                                     </div>
                                                     <div class="card-tools">
                                                         <em class="card-hint icon ni ni-help-fill" data-toggle="tooltip" data-placement="left" title="Total Deposited"></em>
                                                     </div>
                                                 </div>
                                                 <div class="card-amount">
-                                                    <span class="amount"> {{number_format($inv_year, $basic->decimal)}} <span class="currency currency-usd">{{$basic->currency}}</span>
+                                                    <span class="amount"> {{number_format($total_year_deposit, $basic->decimal)}} <span class="currency currency-usd">{{$basic->currency}}</span>
                                                     </span>
                                                     <span class="change up text-danger">This Year</span>
                                                 </div>
@@ -57,15 +57,15 @@
                                                     <div class="invest-data-amount g-2">
                                                         <div class="invest-data-history">
                                                             <div class="title">This Month</div>
-                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($inv_month, $basic->decimal)}}</div>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_month_deposit, $basic->decimal)}}</div>
                                                         </div>
                                                         <div class="invest-data-history">
                                                             <div class="title">This Week</div>
-                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($inv_week, $basic->decimal)}}</div>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_week_deposit, $basic->decimal)}}</div>
                                                         </div>
                                                         <div class="invest-data-history">
                                                             <div class="title">Today</div>
-                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($inv_today, $basic->decimal)}}</div>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_day_deposit, $basic->decimal)}}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -77,14 +77,14 @@
                                             <div class="card-inner">
                                                 <div class="card-title-group align-start mb-0">
                                                     <div class="card-title">
-                                                        <h6 class="subtitle">Total Subscription</h6>
+                                                        <h6 class="subtitle">Total Internal Transfer</h6>
                                                     </div>
                                                     <div class="card-tools">
-                                                        <em class="card-hint icon ni ni-help-fill" data-toggle="tooltip" data-placement="left" title="Total Withdraw"></em>
+                                                        <em class="card-hint icon ni ni-help-fill" data-toggle="tooltip" data-placement="left" title="Total Internal Transfer"></em>
                                                     </div>
                                                 </div>
                                                 <div class="card-amount">
-                                                    <span class="amount"> {{number_format($sub_year, $basic->decimal)}} <span class="currency currency-usd">{{$basic->currency}}</span>
+                                                    <span class="amount"> {{number_format($total_year_int_transfer, $basic->decimal)}} <span class="currency currency-usd">{{$basic->currency}}</span>
                                                     </span>
                                                     <span class="change up text-danger">This Year</span>
                                                 </div>
@@ -93,15 +93,15 @@
                                                     <div class="invest-data-amount g-2">
                                                         <div class="invest-data-history">
                                                             <div class="title">This Month</div>
-                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($sub_month, $basic->decimal)}}</div>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_month_int_transfer, $basic->decimal)}}</div>
                                                         </div>
                                                         <div class="invest-data-history">
                                                             <div class="title">This Week</div>
-                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($sub_week, $basic->decimal)}}</div>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_week_int_transfer, $basic->decimal)}}</div>
                                                         </div>
                                                         <div class="invest-data-history">
                                                             <div class="title">Today</div>
-                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($sub_today, $basic->decimal)}}</div>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_day_int_transfer, $basic->decimal)}}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -113,14 +113,14 @@
                                             <div class="card-inner">
                                                 <div class="card-title-group align-start mb-0">
                                                     <div class="card-title">
-                                                        <h6 class="subtitle">Total Service Order</h6>
+                                                        <h6 class="subtitle">Total External Transfer</h6>
                                                     </div>
                                                     <div class="card-tools">
-                                                        <em class="card-hint icon ni ni-help-fill" data-toggle="tooltip" data-placement="left" title="Total Balance in Account"></em>
+                                                        <em class="card-hint icon ni ni-help-fill" data-toggle="tooltip" data-placement="left" title="Total External Transfer"></em>
                                                     </div>
                                                 </div>
                                                 <div class="card-amount">
-                                                    <span class="amount">{{$ord_year}}</span>
+                                                    <span class="amount">{{number_format($total_year_ext_transfer, $basic->decimal)}} <span class="currency currency-usd">{{$basic->currency}}</span></span>
                                                     <span class="change up text-danger">This Year</span>
                                                 </div>
                                                 <br>
@@ -128,107 +128,15 @@
                                                     <div class="invest-data-amount g-2">
                                                         <div class="invest-data-history">
                                                             <div class="title">This Month</div>
-                                                            <div class="amount">{{$ord_month}}</div>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_month_ext_transfer, $basic->decimal)}}</div>
                                                         </div>
                                                         <div class="invest-data-history">
                                                             <div class="title">This Week</div>
-                                                            <div class="amount">{{$ord_week}}</div>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_week_ext_transfer, $basic->decimal)}}</div>
                                                         </div>
                                                         <div class="invest-data-history">
                                                             <div class="title">Today</div>
-                                                            <div class="amount">{{$ord_today}}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    {{-- monthly --}}
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="nk-wg-card is-dark card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Invoice Paid <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount">{{$basic->currency_sym}} {{number_format($p_inv_month, $basic->decimal)}} <span class="change up">this month</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="nk-wg-card is-s1 card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Subscription Paid <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount">{{$basic->currency_sym}} {{number_format($p_sub_month, $basic->decimal)}} <span class="change up">this month</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="nk-wg-card is-s3 card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Paid Order <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount"> {{$p_ord_month}} <span class="change up">this month</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    {{-- weekly --}}
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="nk-wg-card is-dark card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Invoice Paid <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount">{{$basic->currency_sym}} {{number_format($p_inv_week, $basic->decimal)}} <span class="change up">this week</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="nk-wg-card is-s1 card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Subscription Paid <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount">{{$basic->currency_sym}} {{number_format($p_sub_week, $basic->decimal)}} <span class="change up">this week</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="nk-wg-card is-s3 card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Paid Order <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount"> {{$p_ord_week}} <span class="change up">this week</span>
+                                                            <div class="amount"><span class="currency currency-usd">{{$basic->currency_sym}}</span>{{number_format($total_day_ext_transfer, $basic->decimal)}}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -471,104 +379,6 @@
                                     </div><!-- .col -->
                                     {{-- Betting --}}
                                     {{-- Services Order Details --}}
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="nk-wg-card is-dark card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Service Requests <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount"> {{$service_pending}} <span class="change up">total</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="nk-wg-card is-s1 card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Service In Progress <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount"> {{$service_inprogress}} <span class="change up">total</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    <div class="col-md-12 col-lg-4">
-                                        <div class="nk-wg-card is-s3 card card-bordered">
-                                            <div class="card-inner">
-                                                <div class="nk-iv-wg2">
-                                                    <div class="nk-iv-wg2-title">
-                                                        <h6 class="title">Service Completed <em class="icon ni ni-info"></em></h6>
-                                                    </div>
-                                                    <div class="nk-iv-wg2-text">
-                                                        <div class="nk-iv-wg2-amount"> {{$service_completed}} <span class="change up">total</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div><!-- .card -->
-                                    </div><!-- .col -->
-                                    <div class="col-md-12 col-xxl-4">
-                                        <div class="card card-bordered card-full">
-                                            <div class="card-inner d-flex flex-column h-100">
-                                                <div class="card-title-group mb-3">
-                                                    <div class="card-title">
-                                                        <h6 class="title">Top Subscribed Plans</h6>
-                                                        <p>{{date('M, Y')}} top (5) subscribed plans.</p>
-                                                    </div>
-                                                    <div class="card-tools mt-n4 mr-n1">
-                                                        <div class="drodown">
-                                                            <a href="#" class="dropdown-toggle btn btn-icon btn-trigger" data-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                            <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
-                                                                <ul class="link-list-opt no-bdr">
-                                                                    <li><a href="javascript:void(0);" class="active"><span>{{date('M, Y')}}</span></a></li>
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="progress-list gy-3">
-                                                        @php
-                                                        $max_show=5;
-                                                        $show=0;
-                                                        rsort($sub_counts);
-                                                        @endphp
-                                                    @foreach ($sub_counts as $key => $val)
-                                                        @php
-                                                            $call = \App\Models\Invoice::whereYear('created_at', Carbon\Carbon::now()->year)->whereMonth('created_at', Carbon\Carbon::now()->month)->where('plan_id', !NULL)->whereStatus(1)->count();
-                                                        @endphp
-                                                        @if($show < $max_show)
-                                                            <div class="progress-wrap">
-                                                                <div class="progress-text">
-                                                                    <div class="progress-label">{{$sub_names[$key*1]}} Plan</div>
-                                                                    @if ($call > 0)
-                                                                        <div class="progress-amount">{{($val / ($call+1)) * 100}}%</div>
-                                                                    @else
-                                                                        <div class="progress-amount">0%</div>
-                                                                    @endif
-                                                                </div>
-                                                                <div class="progress progress-md">
-                                                                    @if ($call > 0)
-                                                                        <div class="progress-bar @if((($val / ($call+1)) * 100) > 75) bg-teal @elseif((($val / ($call+1)) * 100) > 50 && (($val / ($call+1)) * 100) < 76) @elseif((($val / ($call+1)) * 100) > 25 && (($val / ($call+1)) * 100) < 51) bg-orange @elseif((($val / ($call+1)) * 100) < 26) bg-pink @endif" data-progress="{{($val / ($call+1)) * 100}}"></div>
-                                                                    @else
-                                                                        <div class="progress-bar" data-progress="0"></div>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endif
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div><!-- .col -->
                                     <div class="col-md-6 col-xxl-4">
                                         <div class="card card-bordered card-full">
                                             <div class="card-inner border-bottom">
@@ -619,13 +429,16 @@
                                             <ul class="nk-activity">
                                                 @foreach ($transactions as $data)
                                                     <li class="nk-activity-item">
-                                                        <div class="nk-activity-media user-avatar bg-success">
-                                                            @if($data->type ==1)
-                                                                <img src="{{url('assets/images/icons/icon-11.png')}}" alt="">
-                                                            @else
-                                                                <img src="{{url('assets/images/icons/icon-9.png')}}" alt="">
-                                                            @endif
-                                                        </div>
+                                                        @if($data->type ==1)
+                                                            <div class="nk-activity-media user-avatar bg-success">
+                                                                <img src="{{url('assets/images/icon-11.png')}}" alt="">
+                                                            </div>
+                                                        @else
+                                                            <div class="nk-activity-media user-avatar bg-danger">
+                                                                <img src="{{url('assets/images/icon-9.png')}}" alt="">
+                                                            </div>
+                                                        @endif
+
                                                         <div class="nk-activity-data">
                                                             <div class="label">{{$data->title}} <b>({{$basic->currency_sym.number_format($data->amount,$basic->decimal)}})</b> - {{ Carbon\Carbon::parse($data->created_at)->diffForHumans() }} | {!! date(' M d, Y H:i A', strtotime($data->created_at)) !!}</div>
                                                             <span class="time">{{$data->description}}</span>

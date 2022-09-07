@@ -40,16 +40,10 @@
                                                     <a class="nav-link" data-toggle="tab" href="#tabItem3"><em class="icon ni ni-wallet-saving"></em><span>Deposits</span></a>
                                                 </li>
                                                 <li class="nav-item">
-                                                    <a class="nav-link" data-toggle="tab" href="#tabItem4"><em class="icon ni ni-wallet-saving"></em><span>Withdrawals</span></a>
+                                                    <a class="nav-link" data-toggle="tab" href="#tabItem4"><em class="icon ni ni-wallet-saving"></em><span>Transfers</span></a>
                                                 </li>
                                                 <li class="nav-item">
                                                     <a class="nav-link" data-toggle="tab" href="#tabItem5"><em class="icon ni ni-file-text"></em><span>Bill History</span></a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" data-toggle="tab" href="#tabItem6"><em class="icon ni ni-mail"></em><span>Message History</span></a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" data-toggle="tab" href="#tabItem7"><em class="icon ni ni-activity"></em><span>Activities</span></a>
                                                 </li>
                                                 <li class="nav-item nav-item-trigger d-xxl-none">
                                                     <a href="#" class="toggle btn btn-icon btn-trigger" data-target="userAside"><em class="icon ni ni-user-list-fill"></em></a>
@@ -152,7 +146,7 @@
                                                                 <div class="profile-ud-item">
                                                                     <div class="profile-ud wider">
                                                                         <span class="profile-ud-label">Nuban Account</span>
-                                                                        @if($client->acc_status ==1)
+                                                                        @if($client->account_number !=NULL)
                                                                             <span class="profile-ud-value">Generated</span>
                                                                         @else
                                                                             <span class="profile-ud-value">Not Generated</span>
@@ -313,7 +307,7 @@
                                                                                         </td>
                                                                                         <td class="tb-tnx-info">
                                                                                             <div class="tb-tnx-desc">
-                                                                                                <span class="title">{{$data->gate->name}}</span>
+                                                                                                <span class="title">{{$data->gateway}}</span>
                                                                                             </div>
                                                                                             <div class="tb-tnx-date">
                                                                                                 <span class="date">{{$basic->currency_sym}}{{number_format($data->amount, $basic->decimal)}}</span>
@@ -351,7 +345,7 @@
                                                                     <div class="card-inner">
                                                                         <div class="card-title-group">
                                                                             <div class="card-title">
-                                                                                <h5 class="title">All Withdrawals</h5>
+                                                                                <h5 class="title">All Transfers</h5>
                                                                             </div>
                                                                         </div><!-- .card-title-group -->
                                                                     </div><!-- .card-inner -->
@@ -379,14 +373,14 @@
                                                                                 </tr><!-- tb-tnx-item -->
                                                                             </thead>
                                                                             <tbody>
-                                                                                @foreach($invoices as $key => $data)
+                                                                                @foreach($transfers as $key => $data)
                                                                                     <tr class="tb-tnx-item">
                                                                                         <td class="tb-tnx-id">
                                                                                             <a href="#"><span>{{$data->trx}}</span></a>
                                                                                         </td>
                                                                                         <td class="tb-tnx-info">
                                                                                             <div class="tb-tnx-desc">
-                                                                                                <span class="title">{{$data->details}}</span>
+                                                                                                <span class="title">{{$data->trans->provider}} - {{$data->trans->recipient}}</span>
                                                                                             </div>
                                                                                             <div class="tb-tnx-date">
                                                                                                 <span class="date">{!! date(' d-m-Y', strtotime($data->created_at)) !!}</span>
@@ -398,12 +392,12 @@
                                                                                                 <span class="amount">{{$basic->currency_sym}}{{number_format($data->total, $basic->decimal)}}</span>
                                                                                             </div>
                                                                                             <div class="tb-tnx-status">
-                                                                                                @if($data->status == 1)
-                                                                                                    <span class="badge badge-dot badge-success">Paid</span>
-                                                                                                @elseif($data->status == 0)
-                                                                                                    <span class="badge badge-dot badge-warning">Unpaid</span>
-                                                                                                @elseif($data->status == 2)
-                                                                                                    <span class="badge badge-dot badge-primary">Pending Confirmation</span>
+                                                                                                @if($data->status == "successful")
+                                                                                                    <span class="badge badge-dot badge-success">{{$data->status}}</span>
+                                                                                                @elseif($data->status == "pending")
+                                                                                                    <span class="badge badge-dot badge-primary">{{$data->status}}</span>
+                                                                                                @else
+                                                                                                    <span class="badge badge-dot badge-warning">{{$data->status}}</span>
                                                                                                 @endif
                                                                                             </div>
                                                                                         </td>
@@ -519,10 +513,10 @@
                                                                                                 <div class="dropdown-menu dropdown-menu-right">
                                                                                                     <ul class="link-list-opt">
                                                                                                         @if($data->service_type == "betting")
-                                                                                                            <li><a href="{{ route('check-betting-status', [$data->ref, $data->trx]) }}"><em class="icon ni ni-done"></em><span>Check Status</span></a></li>
+                                                                                                            <li><a href="{{ route('check-betting-status', [$data->reference, $data->trx]) }}"><em class="icon ni ni-done"></em><span>Check Status</span></a></li>
                                                                                                         @endif
                                                                                                         @if($data->service_type == "internet")
-                                                                                                            <li><a href="{{ route('check-internet-status', [$data->ref, $data->trx]) }}"><em class="icon ni ni-done"></em><span>Check Status</span></a></li>
+                                                                                                            <li><a href="{{ route('check-internet-status', [$data->reference, $data->trx]) }}"><em class="icon ni ni-done"></em><span>Check Status</span></a></li>
                                                                                                         @endif
                                                                                                         {{-- <li><a href="#"><em class="icon ni ni-cross-round"></em><span>Reject</span></a></li> --}}
                                                                                                         @if($data->status =="PENDING" || $data->status =="FAIL" || $data->status =="failed" || $data->status =="FAILED")
@@ -541,150 +535,6 @@
                                                                         @endforeach
                                                                     </div><!-- .nk-tb-list -->
                                                                 </div><!-- .card-inner -->
-                                                            </div><!-- .card -->
-                                                        </div><!-- .nk-block -->
-                                                    </div>
-                                                    <div class="tab-pane" id="tabItem6">
-                                                        <div class="nk-block">
-                                                            <div class="card card-bordered card-stretch">
-                                                                <div class="card-inner-group">
-                                                                    <div class="card-inner">
-                                                                        <div class="card-title-group">
-                                                                            <div class="card-title">
-                                                                                <h5 class="title">All Invoices</h5>
-                                                                            </div>
-                                                                        </div><!-- .card-title-group -->
-                                                                    </div><!-- .card-inner -->
-                                                                    <div class="card-inner p-0">
-                                                                        <table class="table table-tranx">
-                                                                            <thead>
-                                                                                <tr class="tb-tnx-head">
-                                                                                    <th class="tb-tnx-id"><span class="">#</span></th>
-                                                                                    <th class="tb-tnx-info">
-                                                                                        <span class="tb-tnx-desc d-none d-sm-inline-block">
-                                                                                            <span>Bill For</span>
-                                                                                        </span>
-                                                                                        <span class="tb-tnx-date d-md-inline-block d-none">
-                                                                                            <span class="d-md-none">Date</span>
-                                                                                            <span class="d-none d-md-block">
-                                                                                                <span>Issue Date</span>
-                                                                                                <span>Amount</span>
-                                                                                            </span>
-                                                                                        </span>
-                                                                                    </th>
-                                                                                    <th class="tb-tnx-amount is-alt">
-                                                                                        <span class="tb-tnx-total">Total</span>
-                                                                                        <span class="tb-tnx-status d-none d-md-inline-block">Status</span>
-                                                                                    </th>
-                                                                                </tr><!-- tb-tnx-item -->
-                                                                            </thead>
-                                                                            <tbody>
-                                                                                @foreach($invoices as $key => $data)
-                                                                                    <tr class="tb-tnx-item">
-                                                                                        <td class="tb-tnx-id">
-                                                                                            <a href="#"><span>{{$data->trx}}</span></a>
-                                                                                        </td>
-                                                                                        <td class="tb-tnx-info">
-                                                                                            <div class="tb-tnx-desc">
-                                                                                                <span class="title">{{$data->details}}</span>
-                                                                                            </div>
-                                                                                            <div class="tb-tnx-date">
-                                                                                                <span class="date">{!! date(' d-m-Y', strtotime($data->created_at)) !!}</span>
-                                                                                                <span class="amount">{{$basic->currency_sym}}{{number_format($data->amount, $basic->decimal)}}</span>
-                                                                                            </div>
-                                                                                        </td>
-                                                                                        <td class="tb-tnx-amount is-alt">
-                                                                                            <div class="tb-tnx-total">
-                                                                                                <span class="amount">{{$basic->currency_sym}}{{number_format($data->total, $basic->decimal)}}</span>
-                                                                                            </div>
-                                                                                            <div class="tb-tnx-status">
-                                                                                                @if($data->status == 1)
-                                                                                                    <span class="badge badge-dot badge-success">Paid</span>
-                                                                                                @elseif($data->status == 0)
-                                                                                                    <span class="badge badge-dot badge-warning">Unpaid</span>
-                                                                                                @elseif($data->status == 2)
-                                                                                                    <span class="badge badge-dot badge-primary">Pending Confirmation</span>
-                                                                                                @endif
-                                                                                            </div>
-                                                                                        </td>
-                                                                                    </tr><!-- tb-tnx-item -->
-                                                                                @endforeach
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </div><!-- .card-inner -->
-                                                                </div><!-- .card-inner-group -->
-                                                            </div><!-- .card -->
-                                                        </div><!-- .nk-block -->
-                                                    </div>
-                                                    <div class="tab-pane" id="tabItem7">
-                                                        <div class="nk-block">
-                                                            <div class="card card-bordered card-stretch">
-                                                                <div class="card-inner-group">
-                                                                    <div class="card-inner">
-                                                                        <div class="card-title-group">
-                                                                            <div class="card-title">
-                                                                                <h5 class="title">All Invoices</h5>
-                                                                            </div>
-                                                                        </div><!-- .card-title-group -->
-                                                                    </div><!-- .card-inner -->
-                                                                    <div class="card-inner p-0">
-                                                                        <table class="table table-tranx">
-                                                                            <thead>
-                                                                                <tr class="tb-tnx-head">
-                                                                                    <th class="tb-tnx-id"><span class="">#</span></th>
-                                                                                    <th class="tb-tnx-info">
-                                                                                        <span class="tb-tnx-desc d-none d-sm-inline-block">
-                                                                                            <span>Bill For</span>
-                                                                                        </span>
-                                                                                        <span class="tb-tnx-date d-md-inline-block d-none">
-                                                                                            <span class="d-md-none">Date</span>
-                                                                                            <span class="d-none d-md-block">
-                                                                                                <span>Issue Date</span>
-                                                                                                <span>Amount</span>
-                                                                                            </span>
-                                                                                        </span>
-                                                                                    </th>
-                                                                                    <th class="tb-tnx-amount is-alt">
-                                                                                        <span class="tb-tnx-total">Total</span>
-                                                                                        <span class="tb-tnx-status d-none d-md-inline-block">Status</span>
-                                                                                    </th>
-                                                                                </tr><!-- tb-tnx-item -->
-                                                                            </thead>
-                                                                            <tbody>
-                                                                                @foreach($invoices as $key => $data)
-                                                                                    <tr class="tb-tnx-item">
-                                                                                        <td class="tb-tnx-id">
-                                                                                            <a href="#"><span>{{$data->trx}}</span></a>
-                                                                                        </td>
-                                                                                        <td class="tb-tnx-info">
-                                                                                            <div class="tb-tnx-desc">
-                                                                                                <span class="title">{{$data->details}}</span>
-                                                                                            </div>
-                                                                                            <div class="tb-tnx-date">
-                                                                                                <span class="date">{!! date(' d-m-Y', strtotime($data->created_at)) !!}</span>
-                                                                                                <span class="amount">{{$basic->currency_sym}}{{number_format($data->amount, $basic->decimal)}}</span>
-                                                                                            </div>
-                                                                                        </td>
-                                                                                        <td class="tb-tnx-amount is-alt">
-                                                                                            <div class="tb-tnx-total">
-                                                                                                <span class="amount">{{$basic->currency_sym}}{{number_format($data->total, $basic->decimal)}}</span>
-                                                                                            </div>
-                                                                                            <div class="tb-tnx-status">
-                                                                                                @if($data->status == 1)
-                                                                                                    <span class="badge badge-dot badge-success">Paid</span>
-                                                                                                @elseif($data->status == 0)
-                                                                                                    <span class="badge badge-dot badge-warning">Unpaid</span>
-                                                                                                @elseif($data->status == 2)
-                                                                                                    <span class="badge badge-dot badge-primary">Pending Confirmation</span>
-                                                                                                @endif
-                                                                                            </div>
-                                                                                        </td>
-                                                                                    </tr><!-- tb-tnx-item -->
-                                                                                @endforeach
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </div><!-- .card-inner -->
-                                                                </div><!-- .card-inner-group -->
                                                             </div><!-- .card -->
                                                         </div><!-- .nk-block -->
                                                     </div>
@@ -715,9 +565,6 @@
                                                             <div class="badge badge-outline-light badge-pill ucap">@if($client->level == 1) Reseller/Agent @elseif($client->level == 0) Client @endif Wallet</div>
                                                             <h5>Balance: {{$basic->currency_sym.number_format($client->balance, $basic->decimal)}}</h5>
                                                             <span class="sub-text">Earning: {{$basic->currency_sym.number_format($client->earning, $basic->decimal)}}</span>
-                                                            <span class="sub-text">Cashback: {{$basic->currency_sym.number_format($client->cashback, $basic->decimal)}}</span>
-                                                            <span class="sub-text">GB Points: {{$client->point}}Ps</span>
-                                                            <span class="sub-text">MTN CG: {{$client->mtn_cg}}GB</span>
                                                         </div>
                                                     </div>
                                                 </div><!-- .card-inner -->
@@ -737,28 +584,28 @@
                                                     </ul>
                                                 </div><!-- .card-inner -->
                                                 @php
-                                                    $torder = \App\Models\Order::where(['user_id'=> $client->id])->count();
-                                                    $corder = \App\Models\Order::where(['user_id'=> $client->id])->where('end','<', $timenow)->count();
-                                                    $porder = \App\Models\Order::where(['user_id'=> $client->id , 'status' => 1])->count();
+                                                    $depcount = 1;
+                                                    $trfcount = 1;
+                                                    $transcount = 1;
                                                 @endphp
                                                 <div class="card-inner">
                                                     <div class="row text-center">
                                                         <div class="col-4">
                                                             <div class="profile-stats">
-                                                                <span class="amount">{{$torder}}</span>
-                                                                <span class="sub-text">Total Order</span>
+                                                                <span class="amount">{{$depcount}}</span>
+                                                                <span class="sub-text">Deposit Count</span>
                                                             </div>
                                                         </div>
                                                         <div class="col-4">
                                                             <div class="profile-stats">
-                                                                <span class="amount">{{$corder}}</span>
-                                                                <span class="sub-text">Complete</span>
+                                                                <span class="amount">{{$trfcount}}</span>
+                                                                <span class="sub-text">Transfer Count</span>
                                                             </div>
                                                         </div>
                                                         <div class="col-4">
                                                             <div class="profile-stats">
-                                                                <span class="amount">{{$porder}}</span>
-                                                                <span class="sub-text">Progress</span>
+                                                                <span class="amount">{{$transcount}}</span>
+                                                                <span class="sub-text">Transaction Count</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -787,32 +634,6 @@
                                                             <span>{{ Carbon\Carbon::parse($client->created_at)->diffForHumans() }}</span>
                                                         </div>
                                                     </div>
-                                                </div><!-- .card-inner -->
-                                                <div class="card-inner">
-                                                    <h6 class="overline-title-alt mb-3">Subscription</h6>
-                                                    <ul class="g-1">
-                                                        @if($client->sub_id > 0 && $client->sub_expiry > $timenow)
-                                                            <li class="btn-group">
-                                                                <a class="btn btn-xs btn-light btn-dim" href="#">Active</a>
-                                                                <a class="btn btn-xs btn-icon btn-light btn-dim" href="#"><em class="icon ni ni-cross"></em></a>
-                                                            </li>
-                                                            <li class="btn-group">
-                                                                <a class="btn btn-xs btn-light btn-dim" href="#">Expires {{ Carbon\Carbon::parse($client->sub_expiry)->diffForHumans() }}</a>
-                                                                <a class="btn btn-xs btn-icon btn-light btn-dim" href="#"><em class="icon ni ni-cross"></em></a>
-                                                            </li>
-                                                        @else
-                                                            <li class="btn-group">
-                                                                <a class="btn btn-xs btn-light btn-dim" href="#">Inactive</a>
-                                                                <a class="btn btn-xs btn-icon btn-light btn-dim" href="#"><em class="icon ni ni-cross"></em></a>
-                                                            </li>
-                                                            @if($client->sub_id > 0)
-                                                                <li class="btn-group">
-                                                                    <a class="btn btn-xs btn-light btn-dim" href="#">Expired {{ Carbon\Carbon::parse($client->sub_expiry)->diffForHumans() }}</a>
-                                                                    <a class="btn btn-xs btn-icon btn-light btn-dim" href="#"><em class="icon ni ni-cross"></em></a>
-                                                                </li>
-                                                            @endif
-                                                        @endif
-                                                    </ul>
                                                 </div><!-- .card-inner -->
                                             </div><!-- .card-inner -->
                                         </div><!-- .card-aside -->
@@ -906,8 +727,6 @@
                                                 <select class="form-control form-select" id="wallet" name="wallet" data-placeholder="Select Wallet" required>
                                                     <option value="balance">Balance</option>
                                                     <option value="earning">Earning</option>
-                                                    <option value="cashback">Cashback</option>
-                                                    <option value="mtn_cg">MTN CG</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1089,14 +908,8 @@
                                         <li><div class="data-details-head">Paid</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->paid, $gnl->decimal)}}</div></li><!-- li -->
                                         <li><div class="data-details-head">Initial Balance</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->init_bal, $gnl->decimal)}}</div></li><!-- li -->
                                         <li><div class="data-details-head">New Balance</div><div class="data-details-des">{{$gnl->currency_sym.number_format($data->new_bal, $gnl->decimal)}}</div></li><!-- li -->
-                                        @if($data->user->level > 0)
-                                            <li><div class="data-details-head">CG Charged</div><div class="data-details-des">{{$data->cg}}</div></li><!-- li -->
-                                            <li><div class="data-details-head">Initial CG</div><div class="data-details-des">{{$data->init_cg}}</div></li><!-- li -->
-                                            <li><div class="data-details-head">New CG</div><div class="data-details-des">{{$data->new_cg}}</div></li><!-- li -->
-                                        @endif
-                                        <li><div class="data-details-head">Source Debit</div><div class="data-details-des">{{$data->debit}}</div></li><!-- li -->
                                         <li><div class="data-details-head">Channel</div><div class="data-details-des">{{$data->channel}}</div></li><!-- li -->
-                                        <li><div class="data-details-head">orderNo</div><div class="data-details-des">{{$data->ref}}</div></li><!-- li -->
+                                        <li><div class="data-details-head">orderNo</div><div class="data-details-des">{{$data->reference}}</div></li><!-- li -->
                                         @if($data->channel == "API")
                                             <li><div class="data-details-head">Reference</div><div class="data-details-des">{{$data->api_req_id}}</div></li><!-- li -->
                                         @endif

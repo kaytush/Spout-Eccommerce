@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\GeneralSettings;
 use App\Models\Admin;
 use App\Models\AdminLogin;
-use App\Models\Order;
+use App\Models\Gateway;
 use App\Models\UserLogin;
 use App\Models\Counter;
 use App\Models\Faq;
 use App\Models\Transaction;
+use App\Models\Deposit;
+use App\Models\Transfer;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Auth;
@@ -34,6 +36,21 @@ class AdminController extends Controller
         $day = date('d');
 
         //Total Bills
+        $data['total_year_deposit'] = Deposit::whereYear('created_at', Carbon::now()->year)->sum('amount');
+        $data['total_month_deposit'] = Deposit::whereMonth('created_at', Carbon::now()->month)->sum('amount');
+        $data['total_week_deposit'] = Deposit::whereBetween('created_at', [Carbon::now()->startOfWeek(Carbon::SUNDAY), Carbon::now()->endOfWeek(Carbon::SATURDAY)])->sum('amount');
+        $data['total_day_deposit'] = Deposit::whereDay('created_at', Carbon::now()->day)->sum('amount');
+
+        $data['total_year_int_transfer'] = Transfer::where('type', "internal")->whereYear('created_at', Carbon::now()->year)->sum('amount');
+        $data['total_month_int_transfer'] = Transfer::where('type', "internal")->whereMonth('created_at', Carbon::now()->month)->sum('amount');
+        $data['total_week_int_transfer'] = Transfer::where('type', "internal")->whereBetween('created_at', [Carbon::now()->startOfWeek(Carbon::SUNDAY), Carbon::now()->endOfWeek(Carbon::SATURDAY)])->sum('amount');
+        $data['total_day_int_transfer'] = Transfer::where('type', "internal")->whereDay('created_at', Carbon::now()->day)->sum('amount');
+
+        $data['total_year_ext_transfer'] = Transfer::where('type', "external")->whereYear('created_at', Carbon::now()->year)->sum('amount');
+        $data['total_month_ext_transfer'] = Transfer::where('type', "external")->whereMonth('created_at', Carbon::now()->month)->sum('amount');
+        $data['total_week_ext_transfer'] = Transfer::where('type', "external")->whereBetween('created_at', [Carbon::now()->startOfWeek(Carbon::SUNDAY), Carbon::now()->endOfWeek(Carbon::SATURDAY)])->sum('amount');
+        $data['total_day_ext_transfer'] = Transfer::where('type', "external")->whereDay('created_at', Carbon::now()->day)->sum('amount');
+
         $data['airtime_sum_amount'] = Transaction::where(['service_type' => "airtime", 'refunded' => 0])->sum('amount');
         $data['internet_sum_amount'] = Transaction::where(['service_type' => "internet", 'refunded' => 0])->sum('amount');
         $data['tv_sum_amount'] = Transaction::where(['service_type' => "tv", 'refunded' => 0])->sum('amount');
@@ -51,6 +68,10 @@ class AdminController extends Controller
         $data['tv_t_count'] = Transaction::where(['service_type' => "tv", 'refunded' => 0])->count();
         $data['electricity_t_count'] = Transaction::where(['service_type' => "electricity", 'refunded' => 0])->count();
         $data['betting_t_count'] = Transaction::where(['service_type' => "betting", 'refunded' => 0])->count();
+
+        //Recent Activities
+        $data['recent_user_logins'] = UserLogin::latest()->take(5)->get();
+        $data['transactions'] = Transaction::latest()->take(5)->get();
 
         //Top Subscribed Plans
         // $data['plans'] = Subplan::all();
@@ -169,49 +190,6 @@ class AdminController extends Controller
 
 
     //Frontend Settings & Config Starts Here
-    public function services($id){
-        $data['service'] = Service::where(['id' => $id])->first();
-        return view('admin.frontend.services', $data);
-    }
-
-    public function serviceDetailUpdate(Request $request)
-    {
-        $data = Service::find($request->id);
-
-        $request->validate([
-            'image' => 'mimes:jpeg,jpg,png,bmp | max:50000',
-            'brief' => 'required',
-            'details' => 'required',
-        //
-        ], [
-            'image.mimes' => 'Only jpeg,jpg,png,bmp Image supported',
-            'brief.required' => 'Service brief cannot be Empty',
-            'details.required' => 'Service Details cannot be Empty',
-        ]);
-
-        $in = Input::except('_method','_token');
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $filename = time() . '_' . $request->id . '.jpg';
-            $location = 'assets/images/service/' . $filename;
-            $in['image'] = $location;
-            if ($data->image != NULL) {
-                $link = $data->image;
-                if (file_exists($link)) {
-                    @unlink($link);
-                }
-            }
-            Image::make($image)->resize(370, 270)->save($location);
-        }
-
-        $in['brief'] = $request->brief;
-        $in['details'] = $request->details;
-
-        $data->fill($in)->save();
-
-        return back()->with('success', 'Service Details Updated Successfully!');
-    }
-
     public function aboutSecOne(){
         $data['about'] = AboutUs::first();
         return view('admin.frontend.about-sec-one', $data);

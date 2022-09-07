@@ -23,7 +23,8 @@
                                                     <tr>
                                                         <th>#</th>
                                                         <th>Trx</th>
-                                                        <th>Miner</th>
+                                                        <th>From</th>
+                                                        <th>To</th>
                                                         <th>Amount</th>
                                                         <th>Fee</th>
                                                         <th>Total</th>
@@ -35,11 +36,12 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach ($payouts as $key => $data)
+                                                    @foreach ($transfers as $key => $data)
                                                         <tr>
                                                             <td>{{$key+1}}</td>
                                                             <td>{{$data->trx}}</td>
-                                                            <td>{{$data->user->tron_address}}</td>
+                                                            <td>{{$data->sent_from->username}}</td>
+                                                            <td>{{$data->trans->provider}} - {{$data->trans->recipient}}
                                                             <td>{{$data->amount}}</td>
                                                             <td>{{$data->fee}}</td>
                                                             <td>{{$data->total}}</td>
@@ -48,9 +50,9 @@
                                                                 <td style="color:@if($data->status == "Success") green @elseif($data->status == "Processing") orange @elseif($data->status == "Pending") blue @else red @endif">{{$data->status}}</td>
                                                             @endif
                                                             <td>
-                                                                <a href="{{ route('client.details', $data->user_id) }}"><span class="badge badge-pill badge-outline-primary">View Miner</span></a>
+                                                                <a href="{{ route('client.details', $data->from) }}"><span class="badge badge-pill badge-outline-primary">View User</span></a>
                                                                 &nbsp;&nbsp;
-                                                                <a href="#payoutDetails-{{$data->id}}" data-toggle="modal"><span class="badge badge-pill badge-outline-primary">Process</span></a>
+                                                                {{-- <a href="#payoutDetails-{{$data->id}}" data-toggle="modal"><span class="badge badge-pill badge-outline-primary">Process</span></a> --}}
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -67,7 +69,7 @@
             <!-- content @e -->
 
             <!-- Modal -->
-            @foreach ($payouts as $key => $data)
+            @foreach ($transfers as $key => $data)
                 <div class="modal fade" id="payoutDetails-{{$data->id}}" tabindex="-1" role="dialog" aria-labelledby="payoutDetails-{{$data->id}}" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -75,7 +77,7 @@
                                 <h5 class="modal-title" id="payoutDetails-{{$data->id}}">Transaction Id: {{$data->trx}}</h5>
                             </div>
                             <div class="modal-body text-center">
-                                <p>Miner<br><a href="{{ route('client.details', $data->user->id) }}" target="_blank">{{$data->user->tron_address}}</a></p>
+                                <p>Miner<br><a href="javascript:void(0)" target="_blank">{{$data->from}}</a></p>
                                 <p>Payout Amount: {{$gnl->currency_sym.$data->amount}}</p>
                                 <p>Fee: {{$gnl->currency_sym.$data->fee}}</p>
                                 <p>Total Charged: {{$gnl->currency_sym.$data->total}}</p>
@@ -88,8 +90,8 @@
                                         <p>Confirmed By: <b>{{$data->confirmed_by}}</b></p>
                                     @endif
                                     @if($data->status != "Success")
-                                        <a href="{{ route('confirm.payout', $data->id) }}"><span class="btn badge-outline-primary">Confirm payout</span></a>
-                                        <a href="{{ route('processing.payout', $data->id) }}"><span class="btn badge-outline-info">Processing payout</span></a>
+                                        <a href="javascript:void(0)"><span class="btn badge-outline-primary">Confirm payout</span></a>
+                                        <a href="javascript:void(0)"><span class="btn badge-outline-info">Processing payout</span></a>
                                     @else
                                         <a href="javascript:void(0)"><span class="btn badge-outline-success">Paid</span></a>
                                     @endif
