@@ -641,7 +641,14 @@ class BillsController extends Controller
         //Log response
         Log::notice("GB Response on Cable Tv Order for User: [id: ".auth()->user()->id.", username: ".auth()->user()->username."] Trx: ".$trx." Source: WEBSITE".json_encode($res));
 
-        if ($res['code'] == '000'){
+        if($res['success'] == false){
+            // balance auto reverse
+            $u=User::find(auth()->user()->id);
+            $u->balance = $current_bal;
+            $u->save();
+            return back()->with(['error' => 'Unable to process your request. Try again later.']);
+        }
+        if ($res['code'] == '00000'){
 
             //log transaction history
             Transaction::create([
