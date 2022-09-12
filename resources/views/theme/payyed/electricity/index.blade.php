@@ -2,6 +2,62 @@
 @section('title', $page_title)
 
 @section('content')
+        <style>
+            .xpay-select {
+                position: relative;
+                width: 250px;
+                margin: 0 auto;
+            }
+
+            .xpay-select.is-active .select__body {
+                display: block;
+            }
+
+            .select__header {
+                display: flex;
+                padding: 5px;
+                border: 1px solid #000;
+                cursor: pointer;
+            }
+
+            .select__icon {
+                margin: 0 0 0 auto;
+            }
+
+            .select__current {
+                display: flex;
+                align-items: center;
+            }
+
+            .select__current img {
+                width: 20px;
+            }
+
+            .select__body {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                display: none;
+                border: 1px solid;
+                border-top: none;
+            }
+
+            .select__item {
+                display: flex;
+                align-items: center;
+                padding: 5px;
+                cursor: pointer;
+            }
+
+            .select__item img {
+                width: 20px;
+            }
+
+            .select__item:hover {
+                background: #F2F2F2;
+            }
+        </style>
 
         <!-- Content
         ============================================= -->
@@ -53,7 +109,7 @@
                                     </div>
                                 </div>
                             @enderror
-                            @error('code')
+                            @error('amount')
                                 <div class="alert alert-info rounded shadow-sm py-3 px-4 px-sm-2 mb-5">
                                     <div class="form-row align-items-center">
                                         {{ $message }}
@@ -62,33 +118,52 @@
                             @enderror
                             <!-- Deposit Money Form
                     ============================================= -->
-                            <form id="form-send-money" method="POST" action="{{ route('validate-internet') }}">
+                            <form id="form-send-money" method="POST" action="{{ route('validate-electricity') }}">
                                 @csrf
                                 <div class="form-group">
-                                    <label for="number">Mobile Number</label>
-                                    <input type="number" name="number" class="form-control" data-bv-field="amount" id="number" autocomplete="offInput" minlength="11" maxlength="11" required placeholder="Mobile Number 080...">
-                                </div>
-                                <div class="form-group">
-                                    <label for="paymentMethod">Internet Provider</label>
+                                    <label for="paymentMethod">Electricity Provider</label>
                                     <span class="input-group-text p-0">
-                                        <select id="provider" onchange="chooseType(this.value)" data-style="custom-select bg-transparent border-0" data-container="body" data-live-search="true" name="provider" class="selectpicker form-control bg-transparent" required>
-                                            <optgroup label="Popular Currency">
+                                        <select id="provider" onchange="calculate();" data-style="custom-select bg-transparent border-0" data-container="body" data-live-search="true" name="provider" class="selectpicker form-control bg-transparent" required>
+                                            <optgroup label="Electricity Providers">
                                                 @foreach ($lists as $data)
-                                                    <option data-icon="isp-provider isp-provider-{{Str::lower($data->provider)}} mr-1" data-subtext="{{$data->provider}}" value="{{$data->provider}}">{{$data->provider}}</option>
+                                                    <option data-icon="isp-provider isp-provider-{{Str::lower($data->provider)}} mr-1" data-subtext="{{$data->provider}}" value="{{$data->provider}}" data-cent="{{$data->c_cent}}" data-minAmount="{{$data->minAmount}}">{{$data->provider}}</option>
                                                 @endforeach
                                             </optgroup>
                                         </select>
                                     </span>
                                 </div>
                                 <div class="form-group">
-                                    <label for="inputCountry">Data Plan</label>
-                                    <select class="custom-select" id="code" name="code" onchange="calculate();">
-                                        <option value="">Select Data Plan</option>
-                                        @foreach ($airtel as $data)
-                                            <option value="{{$data->id}}">{{$data->name}}</option>
-                                        @endforeach
-                                    </select>
+                                    <label for="paymentMethod">Metertype</label>
+                                    <span class="input-group-text p-0">
+                                        <select id="type" data-style="custom-select bg-transparent border-0" data-container="body" data-live-search="true" name="type" class="selectpicker form-control bg-transparent" required>
+                                            <optgroup label="Metertype">
+                                                <option value="prepaid">Prepaid</option>
+                                                <option value="postpaid">Postpaid</option>
+                                            </optgroup>
+                                        </select>
+                                    </span>
                                 </div>
+                                <div class="form-group">
+                                    <label for="number">Meter Number</label>
+                                    <input type="text" name="number" class="form-control" data-bv-field="amount" id="number" autocomplete="offInput" required placeholder="Meter Number...">
+                                </div>
+                                <div class="form-group">
+                                    <label for="youSend">Amount</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend"><span class="input-group-text">{{$basic->currency_sym}}</span></div>
+                                        <input type="number" class="form-control" data-bv-field="youSend" id="amount" name="amount" onkeyup="calculate();" required placeholder="0" />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text p-0">
+                                                <select id="youSendCurrency" data-style="custom-select bg-transparent border-0" data-container="body" data-live-search="true" class="selectpicker form-control bg-transparent">
+                                                    <optgroup label="Popular Currency">
+                                                        <option data-icon="currency-flag currency-flag-ngn mr-1" data-subtext="Nigerian Naira" selected="selected" value="">{{$basic->currency}}</option>
+                                                    </optgroup>
+                                                </select>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
                                 <p class="text-muted mt-4">
                                     Transaction discount <span class="float-right d-flex align-items-center"><span id="discount">{{$basic->currency_sym.number_format(0,$basic->decimal)}}</span></span>
                                 </p>
@@ -109,68 +184,32 @@
 
         <script>
             function calculate() {
-                var code = $("#code option:selected").val();
-                console.log(code);
-                var c_cent = "{{App\Models\InternetData::where('id',232)->first()->c_cent}}";
-                console.log("c cent: "+c_cent);
-                var api_cent = "{{App\Models\InternetData::where('id',232)->first()->api_cent}}";
-                var amount = "{{App\Models\InternetData::where('id',232)->first()->amount}}";
-                console.log("api cent: "+api_cent);
-                var level="{{auth()->user()->level}}";
-                console.log("Level: "+level);
-                var curr = '{{$basic->currency_sym}}';
-                console.log("Currency: "+curr);
-                console.log("stage 1");
+                var amount = $('#amount').val();
+                var cent = $("#provider option:selected").attr('data-cent');
+                var minAmount = $("#provider option:selected").attr('data-minAmount');
 
-                if (level == 0) {
-                    if (c_cent > 0) {
-                        var discount = amount * (c_cent/100);
-                    }else{
-                        var discount = 0;
-                    }
-
-                }else if (level > 0) {
-                    if (api_cent > 0) {
-                        var discount = amount * (api_cent/100);
-                    }else{
-                        var discount = 0;
-                    }
+                if (cent > 0) {
+                    var discount = amount * (cent/100);
+                }else{
+                    var discount = 0;
                 }
-                console.log("stage 2");
 
-                var total = 1000 - discount;
+                var total = amount - discount;
 
                 document.getElementById("discount").innerHTML = '{{$basic->currency_sym}}'+discount.toLocaleString("en-US");
                 document.getElementById("total").innerHTML = '{{$basic->currency_sym}}'+total.toLocaleString("en-US");
             };
 
             function mySubmitFunction() {
-                var code = $('#code option:selected').val();
+                var amount = $('#amount').val();
                 var number = $('#number').val();
-                if (code != "" && number.length > 9) {
+                var cent = $("#provider option:selected").attr('data-cent');
+                var minAmount = $("#provider option:selected").attr('data-minAmount');
+                if (amount != "" && amount != "0" && number != "") {
                     document.getElementById("show").innerHTML = "<div class='spinner'><div class='double-bounce1'></div><div class='double-bounce2'></div></div>";
                     document.getElementById("show").disabled = true;
                 }
             };
-
-            function chooseType(id) {
-                selectBox=document.getElementById('code');
-                removeAll(selectBox);
-
-                var cars=<?php echo $plans; ?>;
-                for (let i = 0; i < cars.length; i++) {
-                    if(cars[i].ip_name == id) {
-                        let newOption = new Option(cars[i].name +' (<?php echo $gnl->currency_sym; ?>' + cars[i].amount +')', cars[i].id);
-                        selectBox.add(newOption, undefined);
-                    }
-                }
-            }
-
-            function removeAll(selectBox) {
-                while (selectBox.options.length > 0) {
-                    selectBox.remove(0);
-                }
-            }
         </script>
 
 @endsection

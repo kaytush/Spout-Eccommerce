@@ -124,3 +124,35 @@
 .isp-provider.isp-provider-nairabet {
     background-image: url('/assets/images/bills/Nairabet3x.png')
 }
+
+.isp-provider.isp-provider-ikedc {
+    background-image: url('/assets/images/bills/Ikeja-Electric-Payment-PHCN.jpg')
+}
+
+.isp-provider.isp-provider-ekedc {
+    background-image: url('/assets/images/bills/Eko-Electric-Payment-PHCN.jpg')
+}
+
+.isp-provider.isp-provider-kedco {
+    background-image: url('/assets/images/bills/Kano-Electric.jpg')
+}
+
+.isp-provider.isp-provider-phed {
+    background-image: url('/assets/images/bills/Port-Harcourt-Electric.jpg')
+}
+
+.isp-provider.isp-provider-jed {
+    background-image: url('/assets/images/bills/Jos-Electric-JED.jpg')
+}
+
+.isp-provider.isp-provider-ibedc {
+    background-image: url('/assets/images/bills/IBEDC-Ibadan-Electricity-Distribution-Company.jpg')
+}
+
+.isp-provider.isp-provider-kaedco {
+    background-image: url('/assets/images/bills/Kaduna-Electric-KAEDCO.jpg')
+}
+
+.isp-provider.isp-provider-aedc {
+    background-image: url('/assets/images/bills/Abuja-Electric.jpg')
+}

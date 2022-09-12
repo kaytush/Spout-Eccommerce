@@ -759,13 +759,12 @@ class BillsController extends Controller
         $request->validate([
             'provider' => 'required|string',
             'type' => 'required|string',
-            'number' => 'required|numeric',
+            'number' => 'required',
             'amount' => 'required|numeric',
         ],[
             'type.required' => 'Meter Type is required',
             'number.required' => 'Meter Number is required',
             'amount.required' => 'Amount is required',
-            'number.numeric' => 'Meter Number cannot include an alphabet',
             'amount.numeric' => 'Amount cannot include an alphabet',
         ]);
 
@@ -837,13 +836,12 @@ class BillsController extends Controller
     {
         $request->validate([
             'provider' => 'required|string',
-            'number' => 'required|numeric',
+            'number' => 'required',
             'type' => 'required|string|max:10',
             'code' => 'required',
             'amount' => 'required|numeric',
         ],[
             'number.required' => 'Meter Number required',
-            'number.numeric' => 'Meter Number cannot include an alphabet',
             'amount.numeric' => 'Amount cannot include an alphabet',
         ]);
 
