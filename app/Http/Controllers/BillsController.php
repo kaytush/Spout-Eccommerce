@@ -171,15 +171,15 @@ class BillsController extends Controller
                 'type' => 0,
                 'status' => $res['data']['status'],
                 'errorMsg' => $res['data']['errorMsg'],
-
             ]);
 
-
-            $to = $u->email;
-            $name = $u->firstname;
-            $subject = "Airtime Topup Successful";
-            $message = "You have successfully Topup " . $request->number." on " . $request->provider." with the sum of " . $gnl->currency."". $request->amount . ". <br>Thank you for choosing " . $gnl->sitename;
-            send_email($to, $name, $subject, $message);
+            if($gnl->email_notification == 1){
+                $to = $u->email;
+                $name = $u->firstname;
+                $subject = "Airtime Topup Successful";
+                $message = "You have successfully Topup " . $request->number." on " . $request->provider." with the sum of " . $gnl->currency."". $request->amount . ". <br>Thank you for choosing " . $gnl->sitename;
+                send_email($to, $name, $subject, $message);
+            }
 
             //REFERRAL EARNING PAYOUT ON NEW SERVER ORDER
             if(auth()->user()->referral != NULL){
@@ -217,25 +217,24 @@ class BillsController extends Controller
                         'type' => 1,
                         'status' => "successful",
                         'errorMsg' => NULL,
-
                     ]);
+
                     //send email to referral
-                    $to = $ref->email;
-                    $name = $ref->firstname;
-                    $subject = "You have just earned some Cash";
-                    $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
-                    send_email($to, $name, $subject, $message);
+                    if($gnl->email_notification == 1){
+                        $to = $ref->email;
+                        $name = $ref->firstname;
+                        $subject = "You have just earned some Cash";
+                        $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
+                        send_email($to, $name, $subject, $message);
+                    }
                 }
-
             }
-
             return redirect()->route('airtime-success')->with(['success'=>'Airtime Topup Successful', 'amount'=>$request->amount, 'number'=>$request->number]);
         }else{
-
-        // balance auto reverse
-        $u=User::find(auth()->user()->id);
-        $u->balance = $current_bal;
-        $u->save();
+            // balance auto reverse
+            $u=User::find(auth()->user()->id);
+            $u->balance = $current_bal;
+            $u->save();
             return back()->with(['error' => 'Unable to Process this Transaction at the moment, Try again later']);
         }
     }
@@ -367,15 +366,15 @@ class BillsController extends Controller
                 'type' => 0,
                 'status' => $res['data']['status'],
                 'errorMsg' => $res['data']['errorMsg'],
-
             ]);
 
-
-            $to = $u->email;
-            $name = $u->firstname;
-            $subject = "Internet Data Purchase Successful";
-            $message = "You have successfully purchased " . $plan->name." on " . $request->number." with the sum of " . $gnl->currency."". $plan->amount . ". <br>Thank you for choosing " . $gnl->sitename;
-            send_email($to, $name, $subject, $message);
+            if($gnl->email_notification == 1){
+                $to = $u->email;
+                $name = $u->firstname;
+                $subject = "Internet Data Purchase Successful";
+                $message = "You have successfully purchased " . $plan->name." on " . $request->number." with the sum of " . $gnl->currency."". $plan->amount . ". <br>Thank you for choosing " . $gnl->sitename;
+                send_email($to, $name, $subject, $message);
+            }
 
             if(auth()->user()->level < 1){
                 //REFERRAL EARNING PAYOUT ON NEW SERVER ORDER
@@ -417,16 +416,16 @@ class BillsController extends Controller
 
                         ]);
                         //send email to referral
-                        $to = $ref->email;
-                        $name = $ref->firstname;
-                        $subject = "You have just earned some Cash";
-                        $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
-                        send_email($to, $name, $subject, $message);
+                        if($gnl->email_notification == 1){
+                            $to = $ref->email;
+                            $name = $ref->firstname;
+                            $subject = "You have just earned some Cash";
+                            $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
+                            send_email($to, $name, $subject, $message);
+                        }
                     }
-
                 }
             }
-
             return redirect()->route('internet-success')->with(['success'=>'Internet Data Purchase successfully', 'name'=>$plan->name, 'number'=>$request->number]);
         }else{
             // balance auto reverse
@@ -542,7 +541,7 @@ class BillsController extends Controller
             Session::put('code', $request->code);
             Session::put('Customer_Name', NULL);
 
-                return redirect()->route('tv-preview');
+            return redirect()->route('tv-preview');
         }
 
         return back()->with(['error' => 'Unable to Verify Smartcard Number at the moment, Try again later']);
@@ -673,14 +672,15 @@ class BillsController extends Controller
                 'status' => $res['data']['status'],
                 'purchased_code' => $res['data']['purchased_code'],
                 'errorMsg' => $res['data']['errorMsg'],
-
             ]);
 
-            $to = $u->email;
-            $name = $u->firstname;
-            $subject = "Tv Subscription Payment Successful";
-            $message = "You have successfully purchased " . $plan->name." on " . $request->number." with the sum of " . $gnl->currency."". $plan->amount . ". <br>Thank you for choosing " . $gnl->sitename;
-            send_email($to, $name, $subject, $message);
+            if($gnl->email_notification == 1){
+                $to = $u->email;
+                $name = $u->firstname;
+                $subject = "Tv Subscription Payment Successful";
+                $message = "You have successfully purchased " . $plan->name." on " . $request->number." with the sum of " . $gnl->currency."". $plan->amount . ". <br>Thank you for choosing " . $gnl->sitename;
+                send_email($to, $name, $subject, $message);
+            }
 
             //REFERRAL EARNING PAYOUT ON NEW SERVER ORDER
             if(auth()->user()->referral != NULL){
@@ -722,22 +722,21 @@ class BillsController extends Controller
                     $ref->earning+=$earn;
                     $ref->save();
                     //send email to referral
-                    $to = $ref->email;
-                    $name = $ref->firstname;
-                    $subject = "You have just earned some Cash";
-                    $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
-                    send_email($to, $name, $subject, $message);
+                    if($gnl->email_notification == 1){
+                        $to = $ref->email;
+                        $name = $ref->firstname;
+                        $subject = "You have just earned some Cash";
+                        $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
+                        send_email($to, $name, $subject, $message);
+                    }
                 }
-
             }
-
             return redirect()->route('tv-success')->with(['success'=>'Tv Subscription Purchase successfully', 'name'=>$plan->name, 'number'=>$request->number]);
         }else{
-
-        // balance auto reverse
-        $u=User::find(auth()->user()->id);
-        $u->balance = $current_bal;
-        $u->save();
+            // balance auto reverse
+            $u=User::find(auth()->user()->id);
+            $u->balance = $current_bal;
+            $u->save();
             return back()->with(['error' => 'Unable to Process this Transaction at the moment, Try again later']);
         }
     }
@@ -776,43 +775,27 @@ class BillsController extends Controller
             return back()->with(['error' => 'You cannot Recharge below '.$gnl->currency_sym.$min]);
         }
 
-        $curl = curl_init();
+        // start electricity validation
+        $call = new GiftBills();
+        $new = new Request([
+            'provider' => $request->provider,
+            'number' => $request->number,
+            'type' => $request->type,
+        ]);
+        $res = $call->validateElectricity($new);
+        //Log response
+        Log::notice("GB Response on Cable Tv Order for User: [id: ".auth()->user()->id.", username: ".auth()->user()->username."] Source: WEBSITE".json_encode($res));
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => env('VTPASS_URL') . "merchant-verify",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => '{"serviceID": "' . $elect->code . '","billersCode": "' . $request->number . '","type": "' . $request->type . '"}',
-            CURLOPT_HTTPHEADER => array(
-                'Authorization: Basic ' . env('VTPASS_AUTH'),
-                'Content-Type: application/json'
-            ),
-        ));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-        $response = curl_exec($curl);
-
-        curl_close($curl);
-
-        $res = json_decode($response, true);
-
-        if(isset($res['content']['error'])){
-            return back()->with(['error' => 'Incorrect or Invalid Meter number. Please try with a correct one']);
-        }
-
-        if ($res['code'] == '000'){
+        if ($res['success'] == true){
             Session::put('provider', $request->provider);
             Session::put('number', $request->number);
             Session::put('type', $request->type);
             Session::put('amount', $request->amount);
-            Session::put('Customer_Name', $res['content']['Customer_Name']);
+            Session::put('Customer_Name', $res['data']['Customer_Name']);
 
-            return redirect()->route('user.electricity-preview');
+            return redirect()->route('electricity-preview');
+        } else {
+             return back()->withErrors('Incorrect or Invalid Meter number. Please try with a correct one');
         }
 
         return back()->with(['error' => 'Unable to Verify Meter Number at the moment, Try again later']);
@@ -829,7 +812,7 @@ class BillsController extends Controller
         $disc = ($data['network']->c_cent / 100) * $data['amount'];
         $data['discount'] = $disc;
 
-        return view('user.bills.electricity-preview', $data);
+        return view('theme.'.$this->theme.'.electricity.preview', $data);
     }
 
     public function electricityRecharge(Request $request)
@@ -838,7 +821,6 @@ class BillsController extends Controller
             'provider' => 'required|string',
             'number' => 'required',
             'type' => 'required|string|max:10',
-            'code' => 'required',
             'amount' => 'required|numeric',
         ],[
             'number.required' => 'Meter Number required',
@@ -859,107 +841,70 @@ class BillsController extends Controller
         $u->balance -= $total;
         $u->save();
 
-        $trx = Carbon::now()->format('YmdHi') . rand();
+        $gnl = GeneralSettings::first();
+        $ref = Carbon::now()->format('YmdHi') . rand();
+        $trx = $gnl->api_trans_prefix.$ref;
         $phone = "07036218209";
 
-        $curl = curl_init();
+        // Log Incoming Electricity Attempt
+        Log::info("Electricity Order Attempt by User: [id: ".auth()->user()->id.", username: ".auth()->user()->username."] Source: WEBSITE".json_encode($request->all()));
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => env('VTPASS_URL') . "pay",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => '{"request_id": "' . $trx . '", "serviceID": "' . $request->code . '","variation_code": "' . $request->type . '","phone": "' . $phone . '","billersCode": "' . $request->number . '","amount": "' . $request->amount . '"}',
-            CURLOPT_HTTPHEADER => array(
-                'Authorization: Basic ' . env('VTPASS_AUTH'),
-                'Content-Type: application/json'
-            ),
-        ));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        // start processing order
+        $call = new GiftBills();
+        $new = new Request([
+            'provider' => $request->provider,
+            'amount' => $request->amount,
+            'number' => $request->number,
+            'type' => $request->type,
+            'reference' => $trx,
+        ]);
+        $res = $call->purchaseElectricity($new);
+        //Log response
+        Log::notice("GB Response on Electricity Order for User: [id: ".auth()->user()->id.", username: ".auth()->user()->username."] Trx: ".$trx." Source: WEBSITE".json_encode($res));
 
-        $response = curl_exec($curl);
-
-        curl_close($curl);
-
-        $res = json_decode($response, true);
-
-        Log::notice("Electricity Order Response ".json_encode($res));
-
-        if ($res['code'] == '000'){
-            $gnl = GeneralSettings::first();
+        if ($res['status'] == true){
 
             //log transaction history
             Transaction::create([
                 'user_id' => auth()->user()->id,
                 'title' => $request->provider.' Electricity',
-                'description' => $gnl->currency_sym.$request->amount.' Electricity Recharge on '.$request->number,
-                'service' => 'bills',
+                'service_type' => "electricity",
+                'icon' => strtolower($request->provider),
+                'provider' => $request->provider,
+                'recipient' => $request->number,
+                'description' => $gnl->currency_sym.$request->amount.' '.$request->provider.' Electricity Recharge on '.$request->number,
                 'amount' => $request->amount,
-                'type' => 0,
+                'discount' => $discount,
+                'fee' => 0,
+                'total' => $total,
+                'init_bal' => $current_bal,
+                'new_bal' => $current_bal - $total,
+                'wallet' => "balance",
+                'reference' => $res['data']['orderNo'],
                 'trx' => $trx,
+                'channel' => "WEBSITE",
+                'type' => 0,
+                'status' => $res['data']['status'],
+                'purchased_code' => $res['data']['purchased_code'],
+                'units' => $res['data']['units'],
+                'errorMsg' => $res['data']['errorMsg'],
+
             ]);
 
-            //log bill history
-            $bill['user_id'] = auth()->user()->id;
-            $bill['service_type'] = "electricity";
-            $bill['provider'] = $request->provider;
-            $bill['recipient'] = $request->number;
-            $bill['amount'] = $request->amount;
-            $bill['discount'] = $discount;
-            $bill['fee'] = 0;
-            $bill['voucher'] = 0;
-            $bill['paid'] = $total;
-            $bill['init_bal'] = $current_bal;
-            $bill['new_bal'] = $bill['init_bal'] - $bill['paid'];
-            $bill['trx'] = $trx;
-            $bill['ref'] = $res['content']['transactions']['transactionId'];
-            $bill['api_req_id'] = NULL;
-            $bill['channel'] = "WEBSITE";
-            if($request->provider == "PHED"){
-                if (strtolower($request->type) == "prepaid") {
-                    $bill['purchased_code'] = $res['purchased_code'];
-                    $bill['units'] = $res['units']." kwH";
-                } else {
-                    $bill['purchased_code'] = $request->number;
-                }
-            }else{
-                if (strtolower($request->type) == "prepaid") {
-                    $bill['purchased_code'] = $res['purchased_code'];
-                    if(isset($res['mainTokenUnits'])){
-                        $bill['units'] = $res['mainTokenUnits']." kwH";
-                    }else{
-                        $bill['units'] = $res['units'];
-                    }
-                } else {
-                    $bill['purchased_code'] = $request->number;
-                }
+            $token = "Purchased Code: <b>".$res['data']['purchased_code']."</b> - Units: ".$res['data']['units'];
+
+            if($gnl->email_notification == 1){
+                $to = $u->email;
+                $name = $u->firstname;
+                $subject = "Electricity Recharge Successful";
+                $message = "You have successfully recharged ".$request->provider." Meter Number ".$request->number." with the sum of ".$gnl->currency."".$request->amount . ". <br>".$token."<br>Thank you for choosing " . $gnl->sitename;
+                send_email($to, $name, $subject, $message);
             }
-
-            $bill['status'] = $res['content']['transactions']['status'];
-            $bill['errorMsg'] = $res['response_description'];
-            BillsHistory::create($bill);
-
-            $u->balance = $bill['new_bal'];
-            $u->save();
-
-            if (strtolower($request->type) == "prepaid"){
-                $token = "Purchased Code: <b>".$bill['purchased_code']."</b> - Units: ".$bill['units'];
-            }else{
-                $token = "Purchased Code: <b>".$bill['purchased_code']."</b>";
+            if($gnl->sms_notification == 1){
+                $phone = auth()->user()->phone;
+                $sms = $request->provider." Meter Number ".$request->number." - ".$token;
+                send_sms($phone, $sms);
             }
-
-            $to = $u->email;
-            $name = $u->firstname;
-            $subject = "Electricity Recharge Successful";
-            $message = "You have successfully recharged ".$request->provider." Meter Number ".$request->number." with the sum of ".$gnl->currency."".$request->amount . ". <br>".$token."<br>Thank you for choosing " . $gnl->sitename;
-            send_email($to, $name, $subject, $message);
-            $phone = auth()->user()->phone;
-            $sms = $request->provider." Meter Number ".$request->number." - ".$token;
-            send_sms($phone, $sms);
 
             //REFERRAL EARNING PAYOUT ON NEW SERVER ORDER
             if(auth()->user()->referral != NULL){
@@ -980,31 +925,49 @@ class BillsController extends Controller
                     Transaction::create([
                         'user_id' => $ref->id,
                         'title' => 'Referral Earning',
-                        'description' => 'Referral Earning on '.auth()->user()->firstname.' '.auth()->user()->lastname.' Electricity Recharge Payment.',
-                        'service' => 'earning',
+                        'service_type' => "earning",
+                        'icon' => "bonus",
+                        'provider' => $request->provider,
+                        'recipient' => $request->number,
+                        'description' => 'Referral Earning on '.auth()->user()->firstname.' '.auth()->user()->lastname.' Electricity Recharge.',
                         'amount' => $earn,
+                        'discount' => 0,
+                        'fee' => 0,
+                        'total' => $earn,
+                        'init_bal' => $ref->earning,
+                        'new_bal' => $ref->earning + $earn,
+                        'wallet' => "earning",
+                        'reference' => NULL,
+                        'trx' => 'REF_'.$ref,
+                        'channel' => "WEBSITE",
                         'type' => 1,
-                        'trx' => 'REF-'.$trx,
+                        'status' => "successful",
+                        'errorMsg' => NULL,
+
                     ]);
                     //send email to referral
-                    $to = $ref->email;
-                    $name = $ref->firstname;
-                    $subject = "You have just earned some Cash";
-                    $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
-                    send_email($to, $name, $subject, $message);
+                    if($gnl->email_notification == 1){
+                        $to = $ref->email;
+                        $name = $ref->firstname;
+                        $subject = "You have just earned some Cash";
+                        $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
+                        send_email($to, $name, $subject, $message);
+                    }
                 }
-
             }
-
-            return redirect()->route('user.electricity')->with('success', 'Electricity Recharged successfully');
+            return redirect()->route('electricity-success')->with(['success'=>'Electricity Recharged successfully', 'amount'=>$request->amount, 'number'=>$request->number]);
         }else{
-
-        // balance auto reverse
-        $u=User::find(auth()->user()->id);
-        $u->balance = $current_bal;
-        $u->save();
+            // balance auto reverse
+            $u=User::find(auth()->user()->id);
+            $u->balance = $current_bal;
+            $u->save();
             return back()->with(['error' => 'Unable to Process this Transaction at the moment, Try again later']);
         }
+    }
+
+    public function electricitySuccess(){
+        $data['page_title'] = "Electricity Recharge";
+        return view('theme.'.$this->theme.'.electricity.success', $data);
     }
 
     // BETTING
@@ -1154,14 +1117,15 @@ class BillsController extends Controller
             'type' => 0,
             'status' => "successful",
             'errorMsg' => $res['data']['errorMsg'],
-
         ]);
 
-        $to = $u->email;
-        $name = $u->firstname;
-        $subject = "Betting Topup Successful";
-        $message = "You have successfully Topup " . $request->customerId." on " . $request->provider." with the sum of " . $gnl->currency."". $request->amount . ". <br>Thank you for choosing " . $gnl->sitename;
-        send_email($to, $name, $subject, $message);
+        if($gnl->email_notification == 1){
+            $to = $u->email;
+            $name = $u->firstname;
+            $subject = "Betting Topup Successful";
+            $message = "You have successfully Topup " . $request->customerId." on " . $request->provider." with the sum of " . $gnl->currency."". $request->amount . ". <br>Thank you for choosing " . $gnl->sitename;
+            send_email($to, $name, $subject, $message);
+        }
 
         if(auth()->user()->level < 1){
             //REFERRAL EARNING PAYOUT ON NEW SERVER ORDER
@@ -1203,11 +1167,13 @@ class BillsController extends Controller
 
                     ]);
                     //send email to referral
-                    $to = $ref->email;
-                    $name = $ref->firstname;
-                    $subject = "You have just earned some Cash";
-                    $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
-                    send_email($to, $name, $subject, $message);
+                    if($gnl->email_notification == 1){
+                        $to = $ref->email;
+                        $name = $ref->firstname;
+                        $subject = "You have just earned some Cash";
+                        $message = "You have earned " . $gnl->currency."". $earn . " in our Referral Earning Program. Thank you for choosing " . $gnl->sitename;
+                        send_email($to, $name, $subject, $message);
+                    }
                 }
 
             }
@@ -1215,7 +1181,6 @@ class BillsController extends Controller
 
         return redirect()->route('betting-success')->with(['success'=>'Betting Account Topup successfully', 'amount'=>$request->amount, 'number'=>$request->number]);
     }
-
 
     public function bettingSuccess(){
         $data['page_title'] = "Betting Top-Up";

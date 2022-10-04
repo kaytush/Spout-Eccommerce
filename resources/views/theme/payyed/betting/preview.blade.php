@@ -96,8 +96,7 @@
                                 <h3 class="text-5 font-weight-400 mb-4">Details</h3>
                                 <hr class="mx-n3 mx-sm-n5 mb-4" />
                                 <p class="mb-1">Wallet Balance <span class="text-3 float-right"><font @if(auth()->user()->balance > $amount) color="green" @else color="red" @endif>{{ $basic->currency_sym.number_format(auth()->user()->balance, $basic->decimal) }}</font></span></p>
-                                {{-- <p class="mb-1">Data Plan <span class="text-3 float-right">{{$plan->name}}</span></p> --}}
-                                <p class="mb-1">Data Amount <span class="text-3 float-right">{{$basic->currency_sym.number_format($amount,$basic->decimal)}}</span></p>
+                                <p class="mb-1">Topup Amount <span class="text-3 float-right">{{$basic->currency_sym.number_format($amount,$basic->decimal)}}</span></p>
                                 <p class="mb-1">Discount <span class="text-3 float-right">{{$basic->currency_sym.number_format($discount,$basic->decimal)}}</span></p>
                                 <p class="mb-1">Fee <span class="text-3 float-right">{{$basic->currency_sym.number_format(0,$basic->decimal)}}</span></p>
                                 <hr />

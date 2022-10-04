@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Etemplate;
 
 class GiftbillsMail extends Mailable
 {
@@ -31,6 +32,7 @@ class GiftbillsMail extends Mailable
      */
     public function build()
     {
-        return $this->subject($this->details['subject'])->view('mail.email');
+        $data['body'] = Etemplate::first()->emessage;
+        return $this->subject($this->details['subject'])->view('mail.body', $data);
     }
 }

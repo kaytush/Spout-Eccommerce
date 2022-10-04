@@ -40,7 +40,7 @@
                     <div class="col-md-9 col-lg-7 col-xl-6 mx-auto">
                         <div class="bg-white shadow-sm rounded p-3 pt-sm-4 pb-sm-5 px-sm-5 mb-4">
                             <div class="text-center">
-                                <img style="border-radius: 20px" src="{{url($bet->providerLogoUrl)}}" width="80px" height="80px" alt="avatar">
+                                <img style="border-radius: 20px" src="{{url($network->providerLogoUrl)}}" width="80px" height="80px" alt="avatar">
                             </div>
                             <hr class="mx-n3 mx-sm-n5 mb-4" />
                             <!-- Deposit Money Confirm
@@ -59,7 +59,7 @@
                                     </div>
                                 </div>
                             @endif
-                            <form id="form-send-money" action="{{route('buy-betting')}}" method="POST">
+                            <form id="form-send-money" action="{{route('buy-electricity')}}" method="POST">
                                 <div class="form-group">
                                     @csrf
                                     <input type="hidden" name="provider" value="{{$provider}}">
@@ -73,20 +73,12 @@
                                         <p class="col-sm-7 text-3">{{$provider}}</p>
                                     </div>
                                     <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">UserID/CustomerID:</p>
+                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Account/Meter No:</p>
                                         <p class="col-sm-7 text-3">{{$number}}</p>
                                     </div>
                                     <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Firstname:</p>
-                                        <p class="col-sm-7 text-3">{{$firstName}}</p>
-                                    </div>
-                                    <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Lastname:</p>
-                                        <p class="col-sm-7 text-3">{{$lastName}}</p>
-                                    </div>
-                                    <div class="form-row align-items-center">
-                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Username:</p>
-                                        <p class="col-sm-7 text-3">{{$userName}}</p>
+                                        <p class="col-sm-5 opacity-7 text-sm-right mb-0 mb-sm-3">Customer Name:</p>
+                                        <p class="col-sm-7 text-3">{{$Customer_Name}}</p>
                                     </div>
                                     {{-- <div class="form-row align-items-center">
                                         <p class="col-sm-5 opacity-7 text-sm-right mb-0">Wallet Balance:</p>
@@ -97,8 +89,7 @@
                                 <h3 class="text-5 font-weight-400 mb-4">Details</h3>
                                 <hr class="mx-n3 mx-sm-n5 mb-4" />
                                 <p class="mb-1">Wallet Balance <span class="text-3 float-right"><font @if(auth()->user()->balance > $amount) color="green" @else color="red" @endif>{{ $basic->currency_sym.number_format(auth()->user()->balance, $basic->decimal) }}</font></span></p>
-                                {{-- <p class="mb-1">Data Plan <span class="text-3 float-right">{{$plan->name}}</span></p> --}}
-                                <p class="mb-1">Data Amount <span class="text-3 float-right">{{$basic->currency_sym.number_format($amount,$basic->decimal)}}</span></p>
+                                <p class="mb-1">Recharge Amount <span class="text-3 float-right">{{$basic->currency_sym.number_format($amount,$basic->decimal)}}</span></p>
                                 <p class="mb-1">Discount <span class="text-3 float-right">{{$basic->currency_sym.number_format($discount,$basic->decimal)}}</span></p>
                                 <p class="mb-1">Fee <span class="text-3 float-right">{{$basic->currency_sym.number_format(0,$basic->decimal)}}</span></p>
                                 <hr />

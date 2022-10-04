@@ -76,6 +76,31 @@
                                 </li><!-- .nk-menu-item -->
                                 <li class="nk-menu-item has-sub">
                                     <a href="#" class="nk-menu-link nk-menu-toggle">
+                                        <span class="nk-menu-text">Pricing</span>
+                                    </a>
+                                    <ul class="nk-menu-sub">
+                                        <li class="nk-menu-item">
+                                            <a href="{{route('bill-history')}}" class="nk-menu-link"><span class="nk-menu-text">Airtime</span></a>
+                                        </li>
+                                        <li class="nk-menu-item">
+                                            <a href="{{route('deposit-history')}}" class="nk-menu-link"><span class="nk-menu-text">Internet</span></a>
+                                        </li>
+                                        <li class="nk-menu-item">
+                                            <a href="{{route('transaction-history')}}" class="nk-menu-link"><span class="nk-menu-text">Cable Tv</span></a>
+                                        </li>
+                                        <li class="nk-menu-item">
+                                            <a href="{{route('transaction-history')}}" class="nk-menu-link"><span class="nk-menu-text">Electricity</span></a>
+                                        </li>
+                                        <li class="nk-menu-item">
+                                            <a href="{{route('transfer-history')}}" class="nk-menu-link"><span class="nk-menu-text">Betting</span></a>
+                                        </li>
+                                        {{-- <li class="nk-menu-item">
+                                            <a href="{{route('convert-airtime-history')}}" class="nk-menu-link"><span class="nk-menu-text">Convert Airtime Hisotry</span></a>
+                                        </li> --}}
+                                    </ul><!-- .nk-menu-sub -->
+                                </li><!-- .nk-menu-item -->
+                                <li class="nk-menu-item has-sub">
+                                    <a href="#" class="nk-menu-link nk-menu-toggle">
                                         <span class="nk-menu-text">Accounts</span>
                                     </a>
                                     <ul class="nk-menu-sub">

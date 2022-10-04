@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\StateController;
 use App\Http\Controllers\SubscriberController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\PricingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -127,6 +128,11 @@ Route::group(['prefix' => 'control','middleware' => 'adminauth'], function () {
 	Route::get('settings', [AdminController::class, 'settings'])->name('settings');
 	Route::post('settings', [AdminController::class, 'UpdateSettings'])->name('UpdateSettings');
 	Route::post('other-settings', [AdminController::class, 'UpdateOtherSettings'])->name('UpdateOtherSettings');
+
+	// Pricing Settings
+	Route::get('airtime-setting', [PricingController::class, 'airimeSetting'])->name('airtime-setting');
+	Route::post('settings', [PricingController::class, 'UpdateSettings'])->name('UpdateSettings');
+	Route::post('other-settings', [PricingController::class, 'UpdateOtherSettings'])->name('UpdateOtherSettings');
 
     // Frontend CMS
     Route::get('teams', [AdminController::class, 'teams'])->name('teams');

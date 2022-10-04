@@ -234,4 +234,89 @@ class GiftBills extends Controller
         return $res;
     }
 
+    // validate Electricity with Giftbills
+    public function validateElectricity(Request $request)
+    {
+        $body = json_encode([
+            'provider' => $request->provider,
+             'number' => $request->number,
+             'type' => $request->type,
+        ]);
+        Log::info("Validating Electricity Account ".$body);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => env('GIFTBILLS_URL') . "electricity/validate",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => '{"provider": "' . $request->provider . '","number": "' . $request->number . '","type": "' . $request->type . '"}',
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Authorization: Bearer '.env('GIFTBILLS_KEY'),
+                'MerchantId: '.env('GIFTBILLS_MID')
+            ),
+        ));
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        $res = json_decode($response, true);
+
+        return $res;
+    }
+
+    // Process Electricity with Giftbills
+    public function purchaseElectricity(Request $request)
+    {
+        $body = json_encode([
+            'provider' => $request->provider,
+             'amount' => $request->amount,
+             'number' => $request->number,
+             'type' => $request->type,
+             'reference'=> $request->reference,
+        ]);
+        Log::info("Processing Electricity Order ".$request->reference." ".$body);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => env('GIFTBILLS_URL').'electricity/recharge',
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => '',
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 0,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => 'POST',
+          CURLOPT_POSTFIELDS =>'{"provider":"'.$request->provider.'",
+            "number": "'.$request->number.'",
+            "amount": "'.$request->amount.'",
+            "type": "'.$request->type.'",
+            "reference": "'.$request->reference.'"
+            }',
+          CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/json',
+            'Authorization: Bearer '.env('GIFTBILLS_KEY'),
+            'MerchantId: '.env('GIFTBILLS_MID')
+          ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        // Log::info($response);
+
+        $res = json_decode($response, true);
+
+        return $res;
+    }
+
 }
