@@ -21,8 +21,8 @@
                                             <a href="#" class="btn btn-icon btn-trigger toggle-expand mr-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
                                             <div class="toggle-expand-content" data-content="pageMenu">
                                                 <ul class="nk-block-tools g-3">
-                                                    <li class="nk-block-tools-opt"><a href="{{ route('subplan') }}" class="btn btn-white btn-dim btn-outline-light"><em class="d-none d-sm-inline icon ni ni-filter-alt"></em><span>Subscrition</span><em class="dd-indc icon ni ni-chevron-right"></em></a></li>
-                                                    <li class="nk-block-tools-opt"><a href="{{ route('services') }}" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Services</span></a></li>
+                                                    <li class="nk-block-tools-opt"><a href="{{ route('settings') }}" class="btn btn-white btn-dim btn-outline-light"><em class="d-none d-sm-inline icon ni ni-filter-alt"></em><span>Subscrition</span><em class="dd-indc icon ni ni-chevron-right"></em></a></li>
+                                                    <li class="nk-block-tools-opt"><a href="{{ route('settings') }}" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Services</span></a></li>
                                                 </ul>
                                             </div>
                                         </div>

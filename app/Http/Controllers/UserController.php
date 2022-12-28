@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Gateways\Paylony;
 use App\Http\Controllers\Gateways\BudPay;
 use App\Models\GeneralSettings;
 use App\Models\User;
 use App\Models\UserLogin;
+use App\Models\State;
 use App\Models\Deposit;
 use App\Models\Transaction;
 use App\Models\Transfer;
@@ -267,13 +269,24 @@ class UserController extends Controller
     public function fundTransfer(){
         $data['page_title'] = "Fund Transfer";
         if(auth()->user()->bvn_status == 1){
-            $call = new BudPay();
-            $res = $call->bankList();
+            if(env('TRANSFER_PROVIDER') == 'paylony'){
+                $call = new Paylony();
+                $res = $call->bankList();
 
-            if(isset($res['success']) && $res['success'] == true){
-                $data['list'] = $res['data'];
+                if($res['success'] == true && $res['status'] == '00'){
+                    $data['list'] = $res['data']['banks'];
+                }else{
+                    $data['list'] = [];
+                }
             }else{
-                $data['list'] = [];
+                $call = new BudPay();
+                $res = $call->bankList();
+
+                if(isset($res['success']) && $res['success'] == true){
+                    $data['list'] = $res['data'];
+                }else{
+                    $data['list'] = [];
+                }
             }
         }else{
             $data['list'] = [];
@@ -294,15 +307,24 @@ class UserController extends Controller
             }else{
                 $data = $receiver->firstname." ".$receiver->lastname;
             }
-            $res = ['success' => true, 'message' => 'Account name retrieved', 'data' => ['account_number' => '','account_name' => $data, 'bank_code' => 0,'bank_name' => '',]];
+            $res = ['success' => true, 'status' => '00', 'message' => 'Account name retrieved', 'data' =>  $data];
         }else{
             // fetch account name from gateway provider
-            $call = new BudPay();
-            $new = new Request([
-                'bank_code' => $bank_code,
-                'account_number' => $account_number,
-            ]);
-            $res = $call->accountNameVerify($new);
+            if(env('TRANSFER_PROVIDER') == 'paylony'){
+                $call = new Paylony();
+                $new = new Request([
+                    'bank_code' => $bank_code,
+                    'account_number' => $account_number,
+                ]);
+                $res = $call->accountNameVerify($new);
+            }else{
+                $call = new BudPay();
+                $new = new Request([
+                    'bank_code' => $bank_code,
+                    'account_number' => $account_number,
+                ]);
+                $res = $call->accountNameVerify($new);
+            }
         }
 
         return $res;
@@ -524,68 +546,140 @@ class UserController extends Controller
             $user->balance -= $total_amount;
             $user->save();
 
-            // proccess transfer
-            $call = new BudPay();
-            $new = new Request([
-                'currency' => "NGN",
-                'amount' => $request->amount,
-                'bank_code' =>  $request->bank_code,
-                'bank_name' => $request->bankName,
-                'account_number' => $request->number,
-                'narration' => $gnl->sitename." payout",
-                'reference' => $trx,
-            ]);
-            $res = $call->bankTransfer($new);
+            // proccess transfer base on active gateway
+            if(env('TRANSFER_PROVIDER') == 'paylony'){
+                //paylony
+                $call = new Paylony();
+                // receiver details
+                $new = new Request([
+                    'bank_code' => $request->bank_code,
+                    'account_number' => $request->number,
+                ]);
+                $receiver = $call->accountNameVerify($new);
+                $rrv = $receiver['data']."|".$request->bank_code."|".$request->number;
 
-            Log::info("Budpay Transfer Attempt Response for trx: ".$trx." - ".json_encode($res));
+                // initiate transfer
+                $new = new Request([
+                    'amount' => $request->amount,
+                    'account_number' => $request->number,
+                    'bank_code' =>  $request->bank_code,
+                    'sender_name' => auth()->user()->firstname.' '.auth()->user()->lastname,
+                    'narration' => $gnl->sitename." payout",
+                    'reference' => $trx,
+                ]);
+                $res = $call->bankTransfer($new);
 
-            if(isset($res['status'])){
-                if($res['status'] == false){
+                Log::info("Paylony Transfer Attempt Response for trx: ".$trx." - ".json_encode($res));
+
+                if($res['success'] != true && $res['status'] != '00'){
                     // auto reverse debited balance
                     $user->balance = $current_bal;
                     $user->save();
                     return back()->with(['error' => 'Service temporarily not available. Try again later or contact support']);
                 }
-            }
 
-            if($res['success'] == true){
-                $rrv = $res['data']['account_name']."|".$res['data']['account_number']."|".$res['data']['bank_code']."|".$res['data']['bank_name'];
-                //log transaction history - sender
-                Transaction::create([
-                    'user_id' => auth()->user()->id,
-                    'title' => 'Bank Transfer',
-                    'service_type' => "transfer",
-                    'icon' => "transfer",
-                    'provider' => $request->bankName,
-                    'recipient' => $request->number,
-                    'description' => $gnl->currency_sym.$request->amount.' Transfer to '.$rrv,
+                if($res['success'] == true && $res['status'] == '00'){
+                    //log transaction history - sender
+                    Transaction::create([
+                        'user_id' => auth()->user()->id,
+                        'title' => 'Bank Transfer',
+                        'service_type' => "transfer",
+                        'icon' => "transfer",
+                        'provider' => $request->bankName,
+                        'recipient' => $request->number,
+                        'description' => $gnl->currency_sym.$request->amount.' Transfer to '.$rrv,
+                        'amount' => $request->amount,
+                        'discount' => 0,
+                        'fee' => $fee,
+                        'total' => $total_amount,
+                        'init_bal' => $current_bal,
+                        'new_bal' => $current_bal - $total_amount,
+                        'wallet' => "balance",
+                        'reference' => NULL,
+                        'trx' => $trx,
+                        'channel' => "WEBSITE",
+                        'type' => 0,
+                        'status' => 'successful',
+                        'errorMsg' => NULL,
+
+                    ]);
+
+                    //log transfer history
+                    Transfer::create([
+                        'from' => auth()->user()->id,
+                        'to' => $request->number,
+                        'type' => "external",
+                        'amount' => $request->amount,
+                        'fee' => $fee,
+                        'total' => $total_amount,
+                        'trx' => $trx,
+                        'status' => 'successful',
+                    ]);
+                }
+            }else{
+                // buday
+                $call = new BudPay();
+                $new = new Request([
+                    'currency' => "NGN",
                     'amount' => $request->amount,
-                    'discount' => 0,
-                    'fee' => $fee,
-                    'total' => $total_amount,
-                    'init_bal' => $current_bal,
-                    'new_bal' => $current_bal - $total_amount,
-                    'wallet' => "balance",
-                    'reference' => NULL,
-                    'trx' => $trx,
-                    'channel' => "WEBSITE",
-                    'type' => 0,
-                    'status' => $res['data']['status'],
-                    'errorMsg' => NULL,
-
+                    'bank_code' =>  $request->bank_code,
+                    'bank_name' => $request->bankName,
+                    'account_number' => $request->number,
+                    'narration' => $gnl->sitename." payout",
+                    'reference' => $trx,
                 ]);
+                $res = $call->bankTransfer($new);
 
-                //log transfer history
-                Transfer::create([
-                    'from' => auth()->user()->id,
-                    'to' => $request->number,
-                    'type' => "external",
-                    'amount' => $request->amount,
-                    'fee' => $fee,
-                    'total' => $total_amount,
-                    'trx' => $trx,
-                    'status' => $res['data']['status'],
-                ]);
+                Log::info("Budpay Transfer Attempt Response for trx: ".$trx." - ".json_encode($res));
+
+                if(isset($res['status'])){
+                    if($res['status'] == false){
+                        // auto reverse debited balance
+                        $user->balance = $current_bal;
+                        $user->save();
+                        return back()->with(['error' => 'Service temporarily not available. Try again later or contact support']);
+                    }
+                }
+
+                if($res['success'] == true){
+                    $rrv = $res['data']['account_name']."|".$res['data']['account_number']."|".$res['data']['bank_code']."|".$res['data']['bank_name'];
+                    //log transaction history - sender
+                    Transaction::create([
+                        'user_id' => auth()->user()->id,
+                        'title' => 'Bank Transfer',
+                        'service_type' => "transfer",
+                        'icon' => "transfer",
+                        'provider' => $request->bankName,
+                        'recipient' => $request->number,
+                        'description' => $gnl->currency_sym.$request->amount.' Transfer to '.$rrv,
+                        'amount' => $request->amount,
+                        'discount' => 0,
+                        'fee' => $fee,
+                        'total' => $total_amount,
+                        'init_bal' => $current_bal,
+                        'new_bal' => $current_bal - $total_amount,
+                        'wallet' => "balance",
+                        'reference' => NULL,
+                        'trx' => $trx,
+                        'channel' => "WEBSITE",
+                        'type' => 0,
+                        'status' => $res['data']['status'],
+                        'errorMsg' => NULL,
+
+                    ]);
+
+                    //log transfer history
+                    Transfer::create([
+                        'from' => auth()->user()->id,
+                        'to' => $request->number,
+                        'type' => "external",
+                        'amount' => $request->amount,
+                        'fee' => $fee,
+                        'total' => $total_amount,
+                        'trx' => $trx,
+                        'status' => $res['data']['status'],
+                    ]);
+                }
             }
         }
 
@@ -644,14 +738,27 @@ class UserController extends Controller
     // Profile Settings
     public function profile(){
         $data['page_title'] = "Profile";
-        $call = new BudPay();
-        $res = $call->bankList();
+        $data['states'] = State::all();
+        if(env('TRANSFER_PROVIDER') == 'paylony'){
+            $call = new Paylony();
+            $res = $call->bankList();
 
-        if(isset($res['success']) && $res['success'] == true){
-            $data['list'] = $res['data'];
+            if($res['success'] == true && $res['status'] == '00'){
+                $data['list'] = $res['data']['banks'];
+            }else{
+                $data['list'] = [];
+            }
         }else{
-            $data['list'] = [];
+            $call = new BudPay();
+            $res = $call->bankList();
+
+            if(isset($res['success']) && $res['success'] == true){
+                $data['list'] = $res['data'];
+            }else{
+                $data['list'] = [];
+            }
         }
+
         return view('theme.'.$this->theme.'.account.profile', $data);
     }
 
@@ -660,8 +767,67 @@ class UserController extends Controller
         $user = User::find(Auth::user()->id);
         $user->firstname = $request->firstname;
         $user->lastname = $request->lastname;
+        $user->gender = $request->gender;
+        $user->dob = $request->dob;
         $user->address = $request->address;
+        $user->city = $request->city;
+        $user->state = $request->state;
         $user->save();
+
+        // generate account if using paylony
+        if(env('VIRTUAL_ACC') == 'paylony' && $user->account_number == NULL){
+            $address = $user->address.', '.$user->city.', '.$user->state;
+
+            $curl = curl_init();
+
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => env('PAYLONY_URL') . "create_account",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => '{
+                    "firstname":"' . $user->firstname . '",
+                    "lastname":"' . $user->lastname . '",
+                    "address":"' . $address . '",
+                    "gender":"' . $user->gender . '",
+                    "email":"' . $user->email . '",
+                    "phone":"' . $user->phone . '",
+                    "dob":"' . $user->dob . '"
+                }',
+                CURLOPT_HTTPHEADER => array(
+                    'Authorization: Bearer ' . env('PAYLONY_SECRET_KEY'),
+                    'Content-Type: application/json'
+                ),
+            ));
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+
+            $res = json_decode($response, true);
+
+            Log::notice("Customer Account created successfully".json_encode($res));
+
+            if ($res['success'] == true && $res['status'] == '00'){
+                // set bank name
+                if($res['data']['provider'] == 'vfd'){
+                    $bank_name = 'VFD Bank';
+                }else{
+                    $bank_name = $res['data']['provider'];
+                }
+                // $plny = User::findOrFail($user->id);
+                $user->bank_name = $bank_name;
+                $user->account_name = $res['data']['account_name'];
+                $user->account_number = $res['data']['account_number'];
+                $user->save();
+            }
+            // Paylony Account generated and saved
+        }
         return back()->with(["success"=>"Profile Updated successfully"]);
     }
 

@@ -43,6 +43,22 @@
               <p class="col-sm-3 text-muted text-sm-right mb-0 mb-sm-3">Address:</p>
               <p class="col-sm-9 text-3">{{ auth()->user()->address }}</p>
             </div>
+            <div class="form-row align-items-baseline">
+              <p class="col-sm-3 text-muted text-sm-right mb-0 mb-sm-3">City:</p>
+              <p class="col-sm-9 text-3">{{ auth()->user()->city }}</p>
+            </div>
+            <div class="form-row align-items-baseline">
+              <p class="col-sm-3 text-muted text-sm-right mb-0 mb-sm-3">State:</p>
+              <p class="col-sm-9 text-3">{{ auth()->user()->state }}</p>
+            </div>
+            <div class="form-row align-items-baseline">
+              <p class="col-sm-3 text-muted text-sm-right mb-0 mb-sm-3">Gender:</p>
+              <p class="col-sm-9 text-3">{{ auth()->user()->gender }}</p>
+            </div>
+            <div class="form-row align-items-baseline">
+              <p class="col-sm-3 text-muted text-sm-right mb-0 mb-sm-3">Date of Birth:</p>
+              <p class="col-sm-9 text-3">{{ auth()->user()->dob }}</p>
+            </div>
           </div>
           <!-- Edit Details Modal
           ================================== -->
@@ -69,6 +85,37 @@
                           <input type="text" value="{{auth()->user()->lastname}}" name="lastname" class="form-control" data-bv-field="fullName" id="fullName" required @if(auth()->user()->bvn_status == 1) readonly @endif>
                         </div>
                       </div>
+                      <div class="col-12 col-sm-6">
+                        @if(auth()->user()->bvn_status == 1)
+                            <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <input type="text" value="{{auth()->user()->gender}}" name="gender" class="form-control" data-bv-field="gender" id="gender" required @if(auth()->user()->bvn_status == 1) readonly @endif>
+                            </div>
+                        @else
+                            <div class="form-group">
+                                <label for="inputCountry">Gender</label>
+                                <select class="custom-select" id="gender" name="gender">
+                                    @if (auth()->user()->gender == 'Male')
+                                        <option value="Male" selected>Male</option>
+                                        <option value="Female">Female</option>
+                                    @elseif (auth()->user()->gender == 'Female')
+                                        <option value="Female" selected>Female</option>
+                                        <option value="Male">Male</option>
+                                    @else
+                                        <option>Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    @endif
+                                </select>
+                            </div>
+                        @endif
+                      </div>
+                      <div class="col-12 col-sm-6">
+                        <div class="form-group">
+                          <label for="dob">Date of Birth</label>
+                          <input type="date" value="{{auth()->user()->dob}}" name="dob" class="form-control" data-bv-field="dob" id="dob" required @if(auth()->user()->bvn_status == 1) readonly @endif>
+                        </div>
+                      </div>
                       <div class="col-12">
                         <h3 class="text-5 font-weight-400 mt-3">Address</h3>
                         <hr>
@@ -76,7 +123,28 @@
                       <div class="col-12">
                         <div class="form-group">
                           <label for="address">Address</label>
-                          <input type="text" value="{{auth()->user()->address}}" name="address" class="form-control" data-bv-field="address" id="address" required placeholder="Address">
+                          <input type="text" value="{{auth()->user()->address}}" name="address" class="form-control" data-bv-field="address" id="address" required placeholder="Address" required>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-6">
+                        <div class="form-group">
+                          <label for="city">City</label>
+                          <input type="text" value="{{auth()->user()->city}}" name="city" class="form-control" data-bv-field="city" id="city" required>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-6">
+                      <div class="form-group">
+                            <label for="state">State</label>
+                            <select class="custom-select" id="state" name="state" required>
+                                @if (auth()->user()->state == NULL)
+                                    <option value="" selected>Select State</option>
+                                @else
+                                    <option value="{{auth()->user()->state}}" selected>{{ auth()->user()->state }}</option>
+                                @endif
+                                @foreach ($states as $data)
+                                    <option value="{{ $data->name }}">{{ $data->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                       </div>
                     </div>
@@ -138,9 +206,15 @@
                         <div class="form-group">
                           <label for="language">Bank Name</label>
                           <select id="provider" onchange="vverify(this.value)" class="custom-select" name="bank_code">
+                          @if (env('TRANSFER_PROVIDER') == 'paylony')
+                            @foreach ($list as $data)
+                                <option value="{{$data['code']}}" data-bank="{{$data['name']}}">{{$data['name']}}</option>
+                            @endforeach
+                          @else
                             @foreach ($list as $data)
                                 <option value="{{$data['bank_code']}}" data-bank="{{$data['bank_name']}}">{{$data['bank_name']}}</option>
                             @endforeach
+                          @endif
                           </select>
                           <input type="hidden" id="bankName" name="bankName" value="" />
                         </div>

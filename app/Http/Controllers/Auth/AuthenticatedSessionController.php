@@ -105,46 +105,13 @@ class AuthenticatedSessionController extends Controller
         $ul['details'] = $_SERVER['HTTP_USER_AGENT'];
         UserLogin::create($ul);
 
-        if(auth()->user()->bp_customer_code == NULL){
-            //Create Budpay Customer
-            $curl = curl_init();
-
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => env('BUD_URL') . "customer",
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => '{"email": "' . auth()->user()->email . '","first_name": "' . auth()->user()->firstname . '","last_name": "' . auth()->user()->lastname . '","phone": "' . auth()->user()->phone . '"}',
-                CURLOPT_HTTPHEADER => array(
-                    'Authorization: Bearer ' . env('BUD_SK_KEY'),
-                    'Content-Type: application/json'
-                ),
-            ));
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-            $response = curl_exec($curl);
-
-            curl_close($curl);
-
-            $res = json_decode($response, true);
-
-            Log::notice("New Customer Code generated successfully".json_encode($res));
-
-            if ($res['status'] == true){
-                $bpc = User::findOrFail(auth()->user()->id);
-                $bpc->bp_customer_id = $res['data']['id'];
-                $bpc->bp_customer_code = $res['data']['customer_code'];
-                $bpc->save();
-
-                //Create Budpay Account for Customer
+        if(env('VIRTUAL_ACC') == 'budpay'){
+            if(auth()->user()->bp_customer_code == NULL){
+                //Create Budpay Customer
                 $curl = curl_init();
 
                 curl_setopt_array($curl, array(
-                    CURLOPT_URL => env('BUD_URL') . "dedicated_virtual_account",
+                    CURLOPT_URL => env('BUD_URL') . "customer",
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -152,7 +119,7 @@ class AuthenticatedSessionController extends Controller
                     CURLOPT_FOLLOWLOCATION => true,
                     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                     CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => '{"customer": "' . $res['data']['customer_code'] . '"}',
+                    CURLOPT_POSTFIELDS => '{"email": "' . auth()->user()->email . '","first_name": "' . auth()->user()->firstname . '","last_name": "' . auth()->user()->lastname . '","phone": "' . auth()->user()->phone . '"}',
                     CURLOPT_HTTPHEADER => array(
                         'Authorization: Bearer ' . env('BUD_SK_KEY'),
                         'Content-Type: application/json'
@@ -166,13 +133,48 @@ class AuthenticatedSessionController extends Controller
 
                 $res = json_decode($response, true);
 
-                Log::notice("Customer Account created successfully".json_encode($res));
+                Log::notice("New Customer Code generated successfully".json_encode($res));
 
                 if ($res['status'] == true){
-                    $bpc->bank_name = $res['data']['bank']['name'];
-                    $bpc->account_name = $res['data']['account_name'];
-                    $bpc->account_number = $res['data']['account_number'];
+                    $bpc = User::findOrFail(auth()->user()->id);
+                    $bpc->bp_customer_id = $res['data']['id'];
+                    $bpc->bp_customer_code = $res['data']['customer_code'];
                     $bpc->save();
+
+                    //Create Budpay Account for Customer
+                    $curl = curl_init();
+
+                    curl_setopt_array($curl, array(
+                        CURLOPT_URL => env('BUD_URL') . "dedicated_virtual_account",
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_ENCODING => '',
+                        CURLOPT_MAXREDIRS => 10,
+                        CURLOPT_TIMEOUT => 30,
+                        CURLOPT_FOLLOWLOCATION => true,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                        CURLOPT_CUSTOMREQUEST => 'POST',
+                        CURLOPT_POSTFIELDS => '{"customer": "' . $res['data']['customer_code'] . '"}',
+                        CURLOPT_HTTPHEADER => array(
+                            'Authorization: Bearer ' . env('BUD_SK_KEY'),
+                            'Content-Type: application/json'
+                        ),
+                    ));
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+                    $response = curl_exec($curl);
+
+                    curl_close($curl);
+
+                    $res = json_decode($response, true);
+
+                    Log::notice("Customer Account created successfully".json_encode($res));
+
+                    if ($res['status'] == true){
+                        $bpc->bank_name = $res['data']['bank']['name'];
+                        $bpc->account_name = $res['data']['account_name'];
+                        $bpc->account_number = $res['data']['account_number'];
+                        $bpc->save();
+                    }
                 }
             }
         }

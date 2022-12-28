@@ -177,45 +177,65 @@ class RegisteredUserController extends Controller
             $ul['details'] = $_SERVER['HTTP_USER_AGENT'];
             UserLogin::create($ul);
 
-            //Create Budpay Customer
-            $curl = curl_init();
+            // Create Virtual Account for Customer
+            // if(env('VIRTUAL_ACC') == 'paylony'){
+            //     $curl = curl_init();
 
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => env('BUD_URL') . "customer",
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => '{"email": "' . $user->email . '","first_name": "' . $user->firstname . '","last_name": "' . $user->lastname . '","phone": "' . $user->phone . '"}',
-                CURLOPT_HTTPHEADER => array(
-                    'Authorization: Bearer ' . env('BUD_SK_KEY'),
-                    'Content-Type: application/json'
-                ),
-            ));
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+            //     curl_setopt_array($curl, array(
+            //         CURLOPT_URL => env('PAYLONY_URL') . "create_account",
+            //         CURLOPT_RETURNTRANSFER => true,
+            //         CURLOPT_ENCODING => '',
+            //         CURLOPT_MAXREDIRS => 10,
+            //         CURLOPT_TIMEOUT => 30,
+            //         CURLOPT_FOLLOWLOCATION => true,
+            //         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            //         CURLOPT_CUSTOMREQUEST => 'POST',
+            //         CURLOPT_POSTFIELDS => '{
+            //             "firstname":"' . $user->firstname . '",
+            //             "lastname":"' . $user->lastname . '",
+            //             "address":"' . $user->address . '",
+            //             "gender":"' . $user->gender . '",
+            //             "email":"' . $user->email . '",
+            //             "phone":"' . $user->phone . '",
+            //             "dob":"' . $user->dob . '"
+            //         }',
+            //         CURLOPT_HTTPHEADER => array(
+            //             'Authorization: Bearer ' . env('PAYLONY_SECRET_KEY'),
+            //             'Content-Type: application/json'
+            //         ),
+            //     ));
+            //     curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
-            $response = curl_exec($curl);
+            //     $response = curl_exec($curl);
 
-            curl_close($curl);
+            //     curl_close($curl);
 
-            $res = json_decode($response, true);
+            //     $res = json_decode($response, true);
 
-            Log::notice("New Customer Code generated successfully".json_encode($res));
+            //     Log::notice("Customer Account created successfully".json_encode($res));
 
-            if ($res['status'] == true){
-                $bpc = User::findOrFail($user->id);
-                $bpc->bp_customer_id = $res['data']['id'];
-                $bpc->bp_customer_code = $res['data']['customer_code'];
-                $bpc->save();
+            //     if ($res['success'] == true && $res['status'] == '00'){
+            //         // set bank name
+            //         if($res['data']['provider'] == 'vfd'){
+            //             $bank_name = 'VFD Bank';
+            //         }else{
+            //             $bank_name = $res['data']['provider'];
+            //         }
+            //         $plny = User::findOrFail($user->id);
+            //         $plny->bank_name = $bank_name;
+            //         $plny->account_name = $res['data']['account_name'];
+            //         $plny->account_number = $res['data']['account_number'];
+            //         $plny->save();
+            //     }
+            //     // Paylony Account generated and saved
+            // }
 
-                //Create Budpay Account for Customer
+            if(env('VIRTUAL_ACC') == 'budpay'){
+                // Create Budpay Customer
                 $curl = curl_init();
 
                 curl_setopt_array($curl, array(
-                    CURLOPT_URL => env('BUD_URL') . "dedicated_virtual_account",
+                    CURLOPT_URL => env('BUD_URL') . "customer",
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -223,7 +243,7 @@ class RegisteredUserController extends Controller
                     CURLOPT_FOLLOWLOCATION => true,
                     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                     CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => '{"customer": "' . $res['data']['customer_code'] . '","first_name": "' . $user->firstname . '","last_name": "' . $user->lastname . '","phone": "' . $user->phone . '"}',
+                    CURLOPT_POSTFIELDS => '{"email": "' . $user->email . '","first_name": "' . $user->firstname . '","last_name": "' . $user->lastname . '","phone": "' . $user->phone . '"}',
                     CURLOPT_HTTPHEADER => array(
                         'Authorization: Bearer ' . env('BUD_SK_KEY'),
                         'Content-Type: application/json'
@@ -237,13 +257,48 @@ class RegisteredUserController extends Controller
 
                 $res = json_decode($response, true);
 
-                Log::notice("Customer Account created successfully".json_encode($res));
+                Log::notice("New Customer Code generated successfully".json_encode($res));
 
                 if ($res['status'] == true){
-                    $bpc->bank_name = $res['data']['bank']['name'];
-                    $bpc->account_name = $res['data']['account_name'];
-                    $bpc->account_number = $res['data']['account_number'];
+                    $bpc = User::findOrFail($user->id);
+                    $bpc->bp_customer_id = $res['data']['id'];
+                    $bpc->bp_customer_code = $res['data']['customer_code'];
                     $bpc->save();
+
+                    // Create Budpay Account for Customer
+                    $curl = curl_init();
+
+                    curl_setopt_array($curl, array(
+                        CURLOPT_URL => env('BUD_URL') . "dedicated_virtual_account",
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_ENCODING => '',
+                        CURLOPT_MAXREDIRS => 10,
+                        CURLOPT_TIMEOUT => 30,
+                        CURLOPT_FOLLOWLOCATION => true,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                        CURLOPT_CUSTOMREQUEST => 'POST',
+                        CURLOPT_POSTFIELDS => '{"customer": "' . $res['data']['customer_code'] . '","first_name": "' . $user->firstname . '","last_name": "' . $user->lastname . '","phone": "' . $user->phone . '"}',
+                        CURLOPT_HTTPHEADER => array(
+                            'Authorization: Bearer ' . env('BUD_SK_KEY'),
+                            'Content-Type: application/json'
+                        ),
+                    ));
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+                    $response = curl_exec($curl);
+
+                    curl_close($curl);
+
+                    $res = json_decode($response, true);
+
+                    Log::notice("Customer Account created successfully".json_encode($res));
+
+                    if ($res['status'] == true){
+                        $bpc->bank_name = $res['data']['bank']['name'];
+                        $bpc->account_name = $res['data']['account_name'];
+                        $bpc->account_number = $res['data']['account_number'];
+                        $bpc->save();
+                    }
                 }
             }
 

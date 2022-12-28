@@ -27,12 +27,10 @@ class CheckStatus
             if (auth()->user()->status == 0) {
                 return redirect()->route('inactive');
             }
-            if(auth()->user()->email_verified == 1)
-            {
-                return $next($request);
-            }else{
+            if(auth()->user()->email_verified != 1){
                 return redirect()->route('authorization');
             }
+            return $next($request);
 
         }else{
             return redirect()->route('login');

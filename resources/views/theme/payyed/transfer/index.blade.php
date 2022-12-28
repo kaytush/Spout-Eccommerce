@@ -173,9 +173,15 @@
                                     <label for="withdrawto">Destination Bank</label>
                                     <select id="provider" onchange="switchP();" class="custom-select" name="bank_code" required="">
                                     <option value="0">{{$gnl->sitename}} (Internal Transfer)</option>
-                                    @foreach ($list as $data)
-                                        <option value="{{$data['bank_code']}}" data-bank="{{$data['bank_name']}}">{{$data['bank_name']}}</option>
-                                    @endforeach
+                                    @if (env('TRANSFER_PROVIDER') == 'paylony')
+                                        @foreach ($list as $data)
+                                            <option value="{{$data['code']}}" data-bank="{{$data['name']}}">{{$data['name']}}</option>
+                                        @endforeach
+                                    @else
+                                        @foreach ($list as $data)
+                                            <option value="{{$data['bank_code']}}" data-bank="{{$data['bank_name']}}">{{$data['bank_name']}}</option>
+                                        @endforeach
+                                    @endif
                                     </select>
                                     <input type="hidden" id="bankName" name="bankName" value="{{$gnl->sitename}}" />
                                 </div>
@@ -209,7 +215,11 @@
             function calculate() {
                 var amount = $('#amount').val();
                 var bank = $("#provider option:selected").val();
-                var fee = "{{$basic->transfer_fee}}";
+                if(bank == 0){
+                    var fee = 0;
+                }else{
+                    var fee = "{{$basic->transfer_fee}}";
+                }
                 var minAmount = 100;
 
                 var total = parseInt(amount) + parseInt(fee);
@@ -225,7 +235,12 @@
 
             function fullAmount() {
                 var amount = parseInt("{{auth()->user()->balance}}");
-                var fee = parseInt("{{$basic->transfer_fee}}");
+                var bank = $("#provider option:selected").val();
+                if(bank == 0){
+                    var fee = 0;
+                }else{
+                    var fee = "{{$basic->transfer_fee}}";
+                }
                 var number = $('#number').val();
                 var minAmount = 100;
                 var total = parseInt(amount) - parseInt(fee);
@@ -255,17 +270,20 @@
                 var amount = $('#amount').val();
                 var bank = $("#provider option:selected").val();
                 var bankName = $("#provider option:selected").attr('data-bank');
+                var fee = "{{$basic->transfer_fee}}";
 
                 if (bank == 0) {
                     $("#bankName").val(bankName);
                     document.getElementById("switch1").style.display = 'block';
                     document.getElementById("switch1").reqired = true;
                     document.getElementById("switch2").style.display = 'none';
+                    document.getElementById("fee").innerHTML = '<span class="bg-info text-1 text-white font-weight-500 rounded d-inline-block px-2 line-height-4 ml-2">Free</span>';
                 }else if (bank > 0) {
                     $("#bankName").val(bankName);
                     document.getElementById("switch1").style.display = 'none';
                     document.getElementById("switch2").style.display = 'block';
                     document.getElementById("switch2").reqired = true;
+                    document.getElementById("fee").innerHTML = '{{$basic->currency_sym}}'+fee.toLocaleString("en-US");
                 }
 
 
@@ -301,10 +319,9 @@
                     xmlhttp.onreadystatechange = function() {
                         if (this.readyState == 4 && this.status == 200) {
                             var jRes=JSON.parse(this.responseText);
-                            console.log(jRes);
                             if(jRes.success){
-                                $("#acc_name").val(jRes.data.account_name);
-                                document.getElementById("accname").innerHTML = jRes.data.account_name;
+                                $("#acc_name").val(jRes.data);
+                                document.getElementById("accname").innerHTML = jRes.data;
                                 document.getElementById("show").innerHTML = "Continue";
                                 document.getElementById("show").disabled = false;
                             }else{
@@ -333,10 +350,9 @@
                     xmlhttp.onreadystatechange = function() {
                         if (this.readyState == 4 && this.status == 200) {
                             var jRes=JSON.parse(this.responseText);
-                            console.log(jRes);
                             if(jRes.success){
-                                $("#acc_name").val(jRes.data.account_name);
-                                document.getElementById("accname").innerHTML = jRes.data.account_name;
+                                $("#acc_name").val(jRes.data);
+                                document.getElementById("accname").innerHTML = jRes.data;
                                 document.getElementById("show").innerHTML = "Continue";
                                 document.getElementById("show").disabled = false;
                             }else{
